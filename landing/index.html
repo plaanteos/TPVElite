@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema TPV Elite — Software de Punto de Venta Profesional</title>
+  <meta name="description" content="Software de punto de venta para cualquier tipo de negocio. Fácil, rápido y profesional. Descargá gratis y empezá hoy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:       #5B5FEF;
+      --accent-dark:  #4348D4;
+      --accent-light: #7B7FF5;
+      --success:      #10B981;
+      --bg:           #0D1117;
+      --bg2:          #161B27;
+      --bg3:          #1E2636;
+      --card:         #1A2235;
+      --border:       #2A3548;
+      --text:         #F0F4FF;
+      --muted:        #8FA3B8;
+      --white:        #FFFFFF;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; }
+
+    /* ── Utilidades ───────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(91, 95, 239, .15);
+      border: 1px solid rgba(91, 95, 239, .35);
+      color: var(--accent-light);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 999px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform .2s, box-shadow .2s, background .2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(91,95,239,.35);
+    }
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 12px 40px rgba(91,95,239,.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--bg3); }
+
+    .btn-lg { padding: 18px 40px; font-size: 18px; border-radius: 12px; }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 560px;
+      margin-top: 14px;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(13,17,23,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .nav-logo .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      padding: 160px 0 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 600px;
+      background: radial-gradient(ellipse, rgba(91,95,239,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1.08;
+      margin: 20px 0 24px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #7B7FF5, #A78BFA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .hero-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+
+    .hero-note span {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* Mockup */
+    .hero-mockup {
+      margin: 72px auto 0;
+      max-width: 860px;
+      position: relative;
+    }
+
+    .mockup-window {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.04),
+        0 40px 100px rgba(0,0,0,.6),
+        0 0 80px rgba(91,95,239,.12);
+    }
+
+    .mockup-bar {
+      background: var(--bg3);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mockup-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+
+    .mockup-screen {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: 360px;
+    }
+
+    .mock-sidebar {
+      background: #1E2A3A;
+      padding: 20px 0;
+      border-right: 1px solid var(--border);
+    }
+
+    .mock-sidebar-header {
+      padding: 0 16px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .mock-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .mock-logo-icon {
+      width: 30px; height: 30px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+
+    .mock-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      font-size: 12px;
+      color: #8FA3B8;
+      border-radius: 6px;
+      margin: 0 8px;
+    }
+
+    .mock-nav-item.active {
+      background: rgba(91,95,239,.15);
+      color: #fff;
+    }
+
+    .mock-content {
+      padding: 20px;
+      background: #0D1117;
+    }
+
+    .mock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .mock-title { font-size: 16px; font-weight: 700; }
+
+    .mock-btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .mock-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .mock-stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .mock-stat-label { font-size: 10px; color: var(--muted); }
+    .mock-stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+    .mock-stat-value.green { color: var(--success); }
+    .mock-stat-value.purple { color: var(--accent-light); }
+
+    .mock-table {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .mock-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 80px;
+      padding: 8px 12px;
+      font-size: 11px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      align-items: center;
+    }
+
+    .mock-row.head {
+      background: var(--bg3);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .mock-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .mock-tag.ok   { background: rgba(16,185,129,.15); color: #10B981; }
+    .mock-tag.warn { background: rgba(245,158,11,.15);  color: #F59E0B; }
+
+    /* ── Logos (tipos de negocio) ────────────────────────────── */
+    .biz-strip {
+      padding: 20px 0 60px;
+      text-align: center;
+    }
+
+    .biz-strip p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .biz-icons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .biz-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: border-color .2s, color .2s;
+    }
+    .biz-chip:hover { border-color: var(--accent); color: var(--text); }
+    .biz-chip .icon { font-size: 18px; }
+
+    /* ── Funcionalidades ──────────────────────────────────────── */
+    .features {
+      padding: 100px 0;
+      background: var(--bg2);
+    }
+
+    .features-header { text-align: center; margin-bottom: 64px; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color .25s, transform .25s;
+    }
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      background: rgba(91,95,239,.12);
+      border: 1px solid rgba(91,95,239,.25);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+
+    .feature-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── Steps ────────────────────────────────────────────────── */
+    .steps {
+      padding: 100px 0;
+    }
+
+    .steps-header { text-align: center; margin-bottom: 64px; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 30px; left: 60px; right: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      opacity: .25;
+    }
+
+    .step-item { text-align: center; padding: 0 20px; position: relative; }
+
+    .step-num {
+      width: 60px; height: 60px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(91,95,239,.35);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step-desc  { font-size: 14px; color: var(--muted); }
+
+    /* ── Precios ──────────────────────────────────────────────── */
+    .pricing {
+      padding: 100px 0;
+      background: var(--bg2);
+      text-align: center;
+    }
+
+    .pricing-header { margin-bottom: 56px; }
+
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .price-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      text-align: left;
+      transition: border-color .25s;
+    }
+
+    .price-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 20px 60px rgba(91,95,239,.2);
+    }
+
+    .price-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .price-label.featured { color: var(--accent-light); }
+
+    .price-amount {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1;
+      margin: 8px 0;
+    }
+
+    .price-period { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+    .price-features { list-style: none; margin-bottom: 28px; }
+
+    .price-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .price-features li:last-child { border-bottom: none; }
+
+    .price-features li .check { color: var(--success); font-size: 15px; flex-shrink: 0; }
+
+    .price-btn {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+    .price-btn:hover { transform: translateY(-2px); }
+    .price-btn.primary { background: var(--accent); color: #fff; }
+    .price-btn.primary:hover { background: var(--accent-dark); }
+    .price-btn.secondary { background: var(--bg3); color: var(--text); }
+    .price-btn.secondary:hover { background: var(--border); }
+
+    /* ── CTA final ────────────────────────────────────────────── */
+    .cta-section {
+      padding: 120px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(91,95,239,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section .section-title { margin: 16px 0 14px; }
+
+    .cta-section .section-sub { margin: 0 auto 40px; }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-copy { font-size: 13px; color: var(--muted); }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .footer-links a { font-size: 13px; color: var(--muted); transition: color .2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ── Animaciones ──────────────────────────────────────────── */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    .hero-mockup { animation: float 5s ease-in-out infinite; }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .mockup-screen { grid-template-columns: 1fr; }
+      .mock-sidebar { display: none; }
+      .steps-grid::before { display: none; }
+      .steps-grid { gap: 40px; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ───────────────────────────────────────────────────────── -->
+<nav>
+  <div class="container nav-inner">
+    <div class="nav-logo">
+      <div class="logo-icon">🏪</div>
+      TPV Elite
+    </div>
+    <ul class="nav-links">
+      <li><a href="#funcionalidades">Funcionalidades</a></li>
+      <li><a href="#como-funciona">Cómo funciona</a></li>
+      <li><a href="#precios">Precios</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="../dist/TPVElite_Setup.exe" download class="btn btn-primary" style="padding:10px 20px;font-size:14px;">
+        ⬇ Descargar gratis
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="badge">✨ Versión 2.0 disponible</div>
+
+    <h1 class="hero-title">
+      El punto de venta<br/>
+      para <span>cualquier negocio</span>
+    </h1>
+
+    <p class="hero-sub">
+      Gestioná ventas, inventario, pedidos y reportes desde una sola aplicación. 
+      Sin internet, sin mensualidades, sin complicaciones.
+    </p>
+
+    <div class="hero-actions">
+      <a href="../dist/TPVElite_Setup.exe" download class="btn btn-primary btn-lg">
+        ⬇&nbsp; Descargar app — Gratis
+      </a>
+      <a href="#funcionalidades" class="btn btn-outline btn-lg">Ver funcionalidades</a>
+    </div>
+
+    <p class="hero-note">
+      <span>✓ Sin suscripción</span> &nbsp;·&nbsp;
+      <span>✓ Se instala en tu PC</span> &nbsp;·&nbsp;
+      <span>✓ Funciona sin internet</span>
+    </p>
+
+    <!-- Mockup de la app -->
+    <div class="hero-mockup fade-up">
+      <div class="mockup-window">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#FF5F57"></div>
+          <div class="mockup-dot" style="background:#FEBC2E"></div>
+          <div class="mockup-dot" style="background:#28C840"></div>
+          <span style="font-size:12px;color:#8FA3B8;margin-left:10px;">Sistema TPV Elite — Dashboard</span>
+        </div>
+        <div class="mockup-screen">
+          <div class="mock-sidebar">
+            <div class="mock-sidebar-header">
+              <div class="mock-logo">
+                <div class="mock-logo-icon">🏪</div>
+                Mi Negocio
+              </div>
+            </div>
+            <div class="mock-nav-item active">📊 Dashboard</div>
+            <div class="mock-nav-item">🛒 Nueva Venta</div>
+            <div class="mock-nav-item">📦 Productos</div>
+            <div class="mock-nav-item">📋 Pedidos</div>
+            <div class="mock-nav-item">📈 Reportes</div>
+            <div class="mock-nav-item">👤 Usuarios</div>
+            <div class="mock-nav-item">⚙ Configuración</div>
+          </div>
+          <div class="mock-content">
+            <div class="mock-header">
+              <div class="mock-title">Resumen del día</div>
+              <div class="mock-btn">+ Nueva venta</div>
+            </div>
+            <div class="mock-stats">
+              <div class="mock-stat">
+                <div class="mock-stat-label">Ventas hoy</div>
+                <div class="mock-stat-value green">$47.850</div>
+              </div>
+              <div class="mock-stat">
+                <div class="mock-stat-label">Transacciones</div>
+                <div class="mock-stat-value purple">24</div>
+              </div>
+              <div class="mock-stat">
+                <div class="mock-stat-label">Productos activos</div>
+                <div class="mock-stat-value">138</div>
+              </div>
+            </div>
+            <div class="mock-table">
+              <div class="mock-row head">
+                <span>Producto</span><span>Categoría</span><span>Precio</span><span>Stock</span>
+              </div>
+              <div class="mock-row">
+                <span>Vainilla 1L</span><span>Helados</span><span>$1.200</span>
+                <span><div class="mock-tag ok">OK</div></span>
+              </div>
+              <div class="mock-row">
+                <span>Frutilla 500ml</span><span>Helados</span><span>$850</span>
+                <span><div class="mock-tag ok">OK</div></span>
+              </div>
+              <div class="mock-row">
+                <span>Chocolate Barra</span><span>Extras</span><span>$320</span>
+                <span><div class="mock-tag warn">Bajo</div></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TIPOS DE NEGOCIO ───────────────────────────────────────────── -->
+<div class="biz-strip">
+  <div class="container">
+    <p>Funciona para cualquier tipo de negocio</p>
+    <div class="biz-icons">
+      <div class="biz-chip"><span class="icon">🍦</span> Heladería</div>
+      <div class="biz-chip"><span class="icon">🍕</span> Pizzería</div>
+      <div class="biz-chip"><span class="icon">☕</span> Cafetería</div>
+      <div class="biz-chip"><span class="icon">🛍️</span> Ropa y accesorios</div>
+      <div class="biz-chip"><span class="icon">💊</span> Farmacia</div>
+      <div class="biz-chip"><span class="icon">🎮</span> Juguetería</div>
+      <div class="biz-chip"><span class="icon">🥩</span> Carnicería</div>
+      <div class="biz-chip"><span class="icon">🥗</span> Restaurante</div>
+      <div class="biz-chip"><span class="icon">📱</span> Tecnología</div>
+      <div class="biz-chip"><span class="icon">🛒</span> Almacén</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FUNCIONALIDADES ────────────────────────────────────────────── -->
+<section class="features" id="funcionalidades">
+  <div class="container">
+    <div class="features-header">
+      <div class="section-label">Funcionalidades</div>
+      <h2 class="section-title">Todo lo que tu negocio<br/>necesita, en un solo lugar</h2>
+      <p class="section-sub" style="margin:14px auto 0">Diseñado para ser simple de usar pero poderoso cuando lo necesitás.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-up">
+        <div class="feature-icon">🛒</div>
+        <div class="feature-title">Punto de Venta</div>
+        <p class="feature-desc">Registrá ventas en segundos con búsqueda por nombre o código de barras, carrito y cálculo automático de vuelto.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📦</div>
+        <div class="feature-title">Control de stock</div>
+        <p class="feature-desc">Alertas automáticas cuando el stock baja del mínimo. Control de productos activos e inactivos con colores de estado.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📈</div>
+        <div class="feature-title">Reportes y estadísticas</div>
+        <p class="feature-desc">Resúmenes de ventas diarios, semanales y mensuales. Exportá a Excel o PDF con un clic.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">👤</div>
+        <div class="feature-title">Múltiples usuarios</div>
+        <p class="feature-desc">Creá cuentas para cada empleado con roles y permisos. Auditoría completa de quién hace cada acción.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📋</div>
+        <div class="feature-title">Gestión de pedidos</div>
+        <p class="feature-desc">Abrí pedidos por mesa o número. Seguimiento de estado: pendiente, en preparación, entregado.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">⚙</div>
+        <div class="feature-title">Configuración total</div>
+        <p class="feature-desc">Personalizá el nombre, logo y tipo de negocio. Temas claro y oscuro. Datos del negocio para tus comprobantes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMO FUNCIONA ──────────────────────────────────────────────── -->
+<section class="steps" id="como-funciona">
+  <div class="container">
+    <div class="steps-header">
+      <div class="section-label">Cómo funciona</div>
+      <h2 class="section-title">Empezá en minutos</h2>
+      <p class="section-sub" style="margin:14px auto 0">Sin técnicos, sin servidores, sin complicaciones.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-item fade-up">
+        <div class="step-num">1</div>
+        <div class="step-title">Descargá el instalador</div>
+        <p class="step-desc">Un solo archivo .exe. Sin requisitos previos, funciona en cualquier Windows 10 u 11.</p>
+      </div>
+      <div class="step-item fade-up">
+        <div class="step-num">2</div>
+        <div class="step-title">Ejecutá el wizard</div>
+        <p class="step-desc">El instalador te guía paso a paso: aceptás la licencia, elegís dónde instalar y listo.</p>
+      </div>
+      <div class="step-item fade-up">
+        <div class="step-num">3</div>
+        <div class="step-title">Configurá tu negocio</div>
+        <p class="step-desc">La primera vez te pide el nombre, tipo de negocio y un usuario administrador. 2 minutos.</p>
+      </div>
+      <div class="step-item fade-up">
+        <div class="step-num">4</div>
+        <div class="step-title">¡Empezá a vender!</div>
+        <p class="step-desc">Cargá tus productos y empezá a gestionar tu negocio desde el primer día.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRECIOS ────────────────────────────────────────────────────── -->
+<section class="pricing" id="precios">
+  <div class="container">
+    <div class="pricing-header">
+      <div class="section-label">Precios</div>
+      <h2 class="section-title">Simple y transparente</h2>
+      <p class="section-sub" style="margin:14px auto 0">Un solo pago, tuyo para siempre. Sin sorpresas.</p>
+    </div>
+    <div class="pricing-cards">
+      <div class="price-card">
+        <div class="price-label">Básico</div>
+        <div class="price-amount">Gratis</div>
+        <div class="price-period">Para siempre</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Ventas ilimitadas</li>
+          <li><span class="check">✓</span> Hasta 100 productos</li>
+          <li><span class="check">✓</span> 1 usuario</li>
+          <li><span class="check">✓</span> Reportes básicos</li>
+          <li><span class="check">✓</span> Sin internet</li>
+        </ul>
+        <a href="../dist/TPVElite_Setup.exe" download class="price-btn secondary">Descargar gratis</a>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-label featured">⭐ Pro — Más popular</div>
+        <div class="price-amount" style="color:var(--accent-light)">$15<span style="font-size:20px;font-weight:500;color:var(--muted)">USD</span></div>
+        <div class="price-period">Pago único · licencia de por vida</div>
+        <ul class="price-features">
+          <li><span class="check">✓</span> Todo lo de Básico</li>
+          <li><span class="check">✓</span> Productos ilimitados</li>
+          <li><span class="check">✓</span> Usuarios ilimitados</li>
+          <li><span class="check">✓</span> Reportes avanzados + Excel</li>
+          <li><span class="check">✓</span> Gestión de pedidos</li>
+          <li><span class="check">✓</span> Actualizaciones gratuitas</li>
+          <li><span class="check">✓</span> Soporte prioritario</li>
+        </ul>
+        <a href="#contacto" class="price-btn primary">Comprar ahora</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA FINAL ──────────────────────────────────────────────────── -->
+<section class="cta-section" id="contacto">
+  <div class="container">
+    <div class="badge">🚀 Empezá hoy, gratis</div>
+    <h2 class="section-title fade-up">Tu negocio merece<br/>una herramienta profesional</h2>
+    <p class="section-sub fade-up">Descargá TPV Elite ahora y empezá a gestionar tu negocio como un profesional. Sin tarjeta de crédito.</p>
+    <a href="../dist/TPVElite_Setup.exe" download class="btn btn-primary btn-lg fade-up">
+      ⬇&nbsp; Descargar TPV Elite — Gratis
+    </a>
+    <p class="hero-note" style="margin-top:20px">
+      ¿Preguntas? Escribinos a
+      <a href="mailto:soporte@tpvelite.com" style="color:var(--accent-light);font-weight:600"> soporte@tpvelite.com</a>
+    </p>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container footer-inner">
+    <div class="nav-logo" style="font-size:15px">
+      <div class="logo-icon" style="width:30px;height:30px;font-size:15px">🏪</div>
+      TPV Elite
+    </div>
+    <div class="footer-copy">© 2026 TPV Elite. Todos los derechos reservados.</div>
+    <ul class="footer-links">
+      <li><a href="#">Privacidad</a></li>
+      <li><a href="#">Licencia</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+  </div>
+</footer>
+
+<!-- ── JS: animaciones scroll ─────────────────────────────────────── -->
+<script>
+  // Intersection Observer para fade-up
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // Activar hero mockup inmediatamente
+  document.querySelector('.hero-mockup').classList.add('visible');
+</script>
+</body>
+</html>

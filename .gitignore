@@ -1,0 +1,52 @@
+.qodo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Reports and generated files
+informes/
+informe_stock/
+pedidos/
+
+# Config with secrets (keep config.json template but ignore local overrides)
+app/config.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Backups
+backups/
+backuos/
+
+# PyInstaller temp
+*.manifest
+

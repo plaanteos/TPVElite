@@ -1,0 +1,22 @@
+345 INFO: PyInstaller: 6.20.0, contrib hooks: 2026.5
+347 INFO: Python: 3.13.12
+423 INFO: Platform: Windows-11-10.0.26200-SP0
+423 INFO: Python environment: C:\Users\Jesu\AppData\Local\Programs\Python\Python313
+425 INFO: wrote c:\Users\Jesu\Documents\aplicaciones\app heladeria\TPVElite_Setup.spec
+432 INFO: Module search paths (PYTHONPATH):
+['c:\\Users\\Jesu\\Documents\\aplicaciones\\app heladeria',
+ 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\python313.zip',
+ 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\DLLs',
+ 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib',
+ 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313',
+ 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages',
+ 'c:\\Users\\Jesu\\Documents\\aplicaciones\\app heladeria']
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.12)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+1432 INFO: Appending 'datas' from .spec
+1538 INFO: checking Analysis
+1828 INFO: checking PYZ
+1919 INFO: checking PKG
+2062 INFO: Bootloader C:\Users\Jesu\AppData\Local\Programs\Python\Python313\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+2062 INFO: checking EXE
+2103 INFO: Build complete! The results are available in: c:\Users\Jesu\Documents\aplicaciones\app heladeria\dist
