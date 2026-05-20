@@ -1,0 +1,22 @@
+name: Deploy to Surge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'landing/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy to Surge
+        run: npx surge landing/ tpvelite.surge.sh --token ${{ secrets.SURGE_TOKEN }}
