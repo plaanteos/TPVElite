@@ -43,7 +43,7 @@ DEPS = [
     "openpyxl",
     "xlsxwriter",
     "python-dateutil",
-    "supabase",
+    "libsql-client",
 ]
 
 LICENSE_TEXT = """ACUERDO DE LICENCIA DE USO — Sistema TPV Elite
