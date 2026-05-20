@@ -12,6 +12,19 @@ import sys
 import os
 import winreg
 import tempfile
+import ctypes
+
+# ─── Instancia única (mutex de Windows) ──────────────────────────────────────
+_MUTEX_NAME = "Global\\TPVElite_Installer_Mutex"
+_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, _MUTEX_NAME)
+if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+    ctypes.windll.user32.MessageBoxW(
+        0,
+        "El instalador ya está en ejecución.\nCerrá la ventana anterior antes de continuar.",
+        "Sistema TPV Elite — Instalador",
+        0x30  # MB_ICONWARNING
+    )
+    sys.exit(0)
 
 # ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -129,7 +142,45 @@ def app_source():
     return os.path.join(source_dir(), "app")
 
 def python_exe():
-    return sys.executable
+    """Devuelve pythonw.exe del sistema. Cuando corre como .exe PyInstaller,
+    sys.executable apunta al propio instalador, así que hay que buscar Python."""
+    if not getattr(sys, 'frozen', False):
+        return sys.executable  # ejecución directa: OK
+
+    # 1. Buscar en PATH
+    for name in ('pythonw.exe', 'python.exe'):
+        found = shutil.which(name)
+        if found:
+            return found
+
+    # 2. Buscar en el Registro de Windows
+    for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+        for subkey in (
+            r'SOFTWARE\Python\PythonCore',
+            r'SOFTWARE\WOW6432Node\Python\PythonCore',
+        ):
+            try:
+                with winreg.OpenKey(hive, subkey) as k:
+                    i = 0
+                    while True:
+                        try:
+                            ver = winreg.EnumKey(k, i)
+                            with winreg.OpenKey(hive, f'{subkey}\\{ver}\\InstallPath') as kp:
+                                path = winreg.QueryValue(kp, '')
+                                for name in ('pythonw.exe', 'python.exe'):
+                                    full = os.path.join(path.strip(), name)
+                                    if os.path.exists(full):
+                                        return full
+                            i += 1
+                        except OSError:
+                            break
+            except OSError:
+                continue
+
+    raise RuntimeError(
+        "No se encontró Python instalado en el sistema.\n"
+        "Instalá Python desde https://python.org antes de ejecutar la aplicación."
+    )
 
 # ─── Instalador ──────────────────────────────────────────────────────────────
 
