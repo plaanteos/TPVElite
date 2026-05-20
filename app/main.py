@@ -9,9 +9,17 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
 import sys
+import threading
+import json
+import tempfile
+import subprocess
+import urllib.request
 from datetime import datetime, timedelta
 from typing import Optional
 import logging
+
+APP_VERSION = "3.0.0"
+UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
 
 # Configurar e importar matplotlib
 try:
@@ -38,6 +46,87 @@ from utils import (setup_logging, load_config, save_config, resource_path, forma
 ensure_directory('logs')
 setup_logging()
 logger = logging.getLogger(__name__)
+
+
+def _parse_version(v: str):
+    """Convierte '3.1.0' en (3, 1, 0) para comparar."""
+    try:
+        return tuple(int(x) for x in v.strip().split('.'))
+    except Exception:
+        return (0,)
+
+
+def check_for_updates(root: tk.Tk):
+    """
+    Verifica en segundo plano si hay una versión más nueva disponible.
+    Si la hay, muestra un diálogo y descarga+ejecuta el instalador.
+    """
+    def _worker():
+        try:
+            with urllib.request.urlopen(UPDATE_URL, timeout=5) as resp:
+                data = json.loads(resp.read().decode())
+
+            remote_version  = data.get('version', '0')
+            download_url    = data.get('download_url', '')
+            changelog       = data.get('changelog', '')
+
+            if _parse_version(remote_version) <= _parse_version(APP_VERSION):
+                return  # sin actualizaciones
+
+            # Mostrar diálogo en el hilo principal
+            root.after(0, lambda: _prompt_update(root, remote_version, download_url, changelog))
+
+        except Exception as e:
+            logger.debug(f"Check de actualización omitido: {e}")
+
+    threading.Thread(target=_worker, daemon=True).start()
+
+
+def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str):
+    """Muestra el diálogo de actualización y, si el usuario acepta, descarga e instala."""
+    msg = (
+        f"¡Nueva versión disponible! ({version})\n\n"
+        f"{changelog}\n\n"
+        "¿Querés actualizar ahora?"
+    )
+    if not messagebox.askyesno("Actualización disponible", msg, parent=root):
+        return
+
+    # Ventana de progreso
+    prog_win = tk.Toplevel(root)
+    prog_win.title("Descargando actualización...")
+    prog_win.resizable(False, False)
+    prog_win.grab_set()
+    w, h = 360, 100
+    prog_win.geometry(f"{w}x{h}+{root.winfo_x()+(root.winfo_width()-w)//2}+{root.winfo_y()+(root.winfo_height()-h)//2}")
+    tk.Label(prog_win, text="Descargando, por favor esperá...", pady=16).pack()
+    bar = ttk.Progressbar(prog_win, mode='indeterminate', length=300)
+    bar.pack(pady=4)
+    bar.start(10)
+    prog_win.update()
+
+    def _download():
+        try:
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.exe')
+            tmp.close()
+            urllib.request.urlretrieve(url, tmp.name)
+            root.after(0, lambda: _launch_installer(root, prog_win, tmp.name))
+        except Exception as e:
+            root.after(0, lambda: _download_error(prog_win, str(e)))
+
+    threading.Thread(target=_download, daemon=True).start()
+
+
+def _launch_installer(root: tk.Tk, prog_win: tk.Toplevel, exe_path: str):
+    prog_win.destroy()
+    subprocess.Popen([exe_path])
+    root.destroy()
+
+
+def _download_error(prog_win: tk.Toplevel, error: str):
+    prog_win.destroy()
+    messagebox.showerror("Error de descarga",
+        f"No se pudo descargar la actualización:\n{error}\n\nIntentalo más tarde.")
 
 
 # 🎨 PALETA DE COLORES ELITE - Dark Theme Premium
@@ -1194,7 +1283,10 @@ class ModernTPV:
         else:
             self._apply_business_branding()
             self.show_login_screen()
-        
+
+        # Verificar actualizaciones en segundo plano (3 seg después del inicio)
+        self.root.after(3000, lambda: check_for_updates(self.root))
+
         logger.info("✨ Aplicación ELITE iniciada correctamente")
     
     def _setup_keyboard_shortcuts(self):
