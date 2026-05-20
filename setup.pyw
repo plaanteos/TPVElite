@@ -207,6 +207,7 @@ class Installer:
         if not os.path.exists(pythonw):
             pythonw = py
         main = os.path.join(self.app_dest, "main.py")
+        icon = os.path.join(self.app_dest, "tpvelite.ico")
 
         # Escribir script .ps1 a archivo temporal — sin problemas de escape
         ps_content = (
@@ -216,6 +217,7 @@ class Installer:
             f"$lnk.Arguments = '\"{main}\"'\n"
             f"$lnk.WorkingDirectory = '{self.app_dest}'\n"
             f"$lnk.Description = '{APP_NAME}'\n"
+            f"$lnk.IconLocation = '{icon},0'\n"
             f"$lnk.Save()\n"
         )
         ps_file = None
