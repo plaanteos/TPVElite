@@ -1385,23 +1385,59 @@ class ModernTPV:
         """Inicializa los servicios de la aplicación"""
         # Usar la base de datos local en el directorio de la aplicación
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heladeria.db')
-        
+
         # Asegurar directorios para backups y reportes
         self.app_data_dir = get_app_data_dir()
         ensure_directory(self.app_data_dir)
         ensure_directory(os.path.join(self.app_data_dir, 'backups'))
         ensure_directory(os.path.join(self.app_data_dir, 'reports'))
         ensure_directory(os.path.join(self.app_data_dir, 'invoices'))
-        
+
         # Inicializar base de datos
         self.db = DatabaseManager(db_path)
-        
+
+        # Inicializar cloud sync (opcional — si no hay credenciales, modo offline)
+        self._init_cloud_sync()
+
         # Inicializar servicios
         self.auth_service = AuthService(self.db)
         self.producto_service = ProductoService(self.db)
         self.venta_service = VentaService(self.db, self.producto_service)
-        
+
         logger.info(f"Servicios inicializados correctamente - DB: {db_path}")
+
+    def _init_cloud_sync(self):
+        """Inicializa el servicio de sincronización con Supabase."""
+        try:
+            import cloud_sync
+
+            config_cloud = self.config.get('cloud', {})
+            config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+
+            # Generar tenant_id si aún no existe
+            if not config_cloud.get('tenant_id'):
+                nuevo_id = cloud_sync.generar_tenant_id()
+                cloud_sync.guardar_tenant_id(config_path, nuevo_id)
+                config_cloud['tenant_id'] = nuevo_id
+                # Recargar config en memoria
+                self.config = load_config('config.json')
+                logger.info(f"Tenant ID generado: {nuevo_id}")
+
+            sync = cloud_sync.inicializar(config_cloud)
+
+            if sync.activo:
+                # Pull inicial en background para sincronizar con otros dispositivos
+                threading.Thread(
+                    target=sync.pull_all,
+                    args=(self.db,),
+                    daemon=True,
+                    name='cloud-pull-init'
+                ).start()
+                logger.info("Cloud sync activo — pull inicial iniciado en background.")
+            else:
+                logger.info("Cloud sync en modo offline (sin credenciales o deshabilitado).")
+        except Exception as exc:
+            logger.warning(f"Cloud sync no pudo inicializarse: {exc}")
     
     def _configure_elite_styles(self):
         """Configura estilos ELITE con diseño premium"""

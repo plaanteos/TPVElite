@@ -43,6 +43,7 @@ DEPS = [
     "openpyxl",
     "xlsxwriter",
     "python-dateutil",
+    "supabase",
 ]
 
 LICENSE_TEXT = """ACUERDO DE LICENCIA DE USO — Sistema TPV Elite
@@ -254,9 +255,11 @@ class Installer:
                             "Cerrá la aplicación antes de continuar con la instalación."
                         )
 
-        # Crear destino si no existe; si existe, copiar encima sin borrar
+        # Crear destino si no existe; si existe, copiar encima sin borrar.
+        # Se excluyen archivos .db para no sobreescribir la base de datos del usuario.
         os.makedirs(dst, exist_ok=True)
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+        shutil.copytree(src, dst, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('*.db', '*.db-shm', '*.db-wal'))
         self._emit(f"   → Archivos copiados a: {dst}", 30)
 
     def _install_deps(self):

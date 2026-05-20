@@ -7,12 +7,24 @@ Descripción: Manejo profesional de la base de datos con optimizaciones y mejore
 
 import sqlite3
 import os
+import re
 import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Tuple
 import threading
 
 logger = logging.getLogger(__name__)
+
+# Tablas que el cloud sync conoce
+_TABLAS_CLOUD = {
+    'usuarios', 'productos', 'ventas', 'detalles_venta',
+    'pedidos', 'detalles_pedido', 'movimientos_inventario',
+}
+
+# Regex para extraer tabla y acción de un SQL de escritura
+_RE_INSERT = re.compile(r'INSERT\s+(?:OR\s+\w+\s+)?INTO\s+(\w+)', re.IGNORECASE)
+_RE_UPDATE = re.compile(r'UPDATE\s+(\w+)', re.IGNORECASE)
+_RE_DELETE = re.compile(r'DELETE\s+FROM\s+(\w+)', re.IGNORECASE)
 
 
 class DatabaseManager:
@@ -279,11 +291,11 @@ class DatabaseManager:
     def execute_query(self, query: str, params: tuple = ()) -> bool:
         """
         Ejecuta una consulta de modificación (INSERT, UPDATE, DELETE)
-        
+
         Args:
             query: Consulta SQL a ejecutar
             params: Parámetros de la consulta
-            
+
         Returns:
             True si se ejecutó correctamente, False en caso contrario
         """
@@ -291,8 +303,10 @@ class DatabaseManager:
             conn = self._get_connection()
             cursor = conn.cursor()
             cursor.execute(query, params)
+            last_id = cursor.lastrowid
             conn.commit()
             logger.debug(f"Query ejecutada: {query[:100]}...")
+            self._sync_despues_de_write(query, last_id)
             return True
         except sqlite3.Error as e:
             logger.error(f"Error al ejecutar query: {e}")
@@ -346,20 +360,24 @@ class DatabaseManager:
     def execute_transaction(self, operations: List[Tuple[str, tuple]]) -> bool:
         """
         Ejecuta múltiples operaciones en una transacción
-        
+
         Args:
             operations: Lista de tuplas (query, params)
-            
+
         Returns:
             True si todas las operaciones se ejecutaron correctamente
         """
         conn = self._get_connection()
         try:
             cursor = conn.cursor()
+            last_ids = []
             for query, params in operations:
                 cursor.execute(query, params)
+                last_ids.append((query, cursor.lastrowid))
             conn.commit()
             logger.info(f"Transacción ejecutada correctamente ({len(operations)} operaciones)")
+            for query, last_id in last_ids:
+                self._sync_despues_de_write(query, last_id)
             return True
         except sqlite3.Error as e:
             logger.error(f"Error en transacción: {e}")
@@ -385,6 +403,44 @@ class DatabaseManager:
             logger.error(f"Error al crear backup: {e}")
             return False
     
+    def _sync_despues_de_write(self, query: str, last_id: Optional[int]):
+        """
+        Detecta la tabla afectada por la query y despacha la fila al cloud sync.
+        Solo actúa si hay un cloud sync habilitado y la tabla está en la lista.
+        """
+        try:
+            import cloud_sync
+            sync = cloud_sync.obtener()
+            if not sync or not sync.activo:
+                return
+
+            # Detectar tabla y acción
+            for patron, accion in (
+                (_RE_INSERT, 'upsert'),
+                (_RE_UPDATE, 'upsert'),
+                (_RE_DELETE, 'delete'),
+            ):
+                m = patron.search(query)
+                if m:
+                    tabla = m.group(1).lower()
+                    if tabla not in _TABLAS_CLOUD:
+                        return
+
+                    if accion == 'delete':
+                        # Para delete solo necesitamos el local_id
+                        if last_id:
+                            sync.push(tabla, 'delete', {'local_id': last_id})
+                    elif last_id:
+                        # Leer la fila recién escrita para enviarla completa
+                        fila = self.fetch_one(
+                            f"SELECT * FROM {tabla} WHERE id = ?", (last_id,)
+                        )
+                        if fila:
+                            sync.push(tabla, 'upsert', dict(fila))
+                    break
+        except Exception as exc:
+            logger.debug(f"Cloud sync dispatch omitido: {exc}")
+
     def close(self):
         """Cierra la conexión a la base de datos"""
         if hasattr(self._local, 'connection') and self._local.connection:
