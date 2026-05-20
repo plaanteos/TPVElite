@@ -15,14 +15,15 @@ import tempfile
 import ctypes
 
 # ─── Instancia única (mutex de Windows) ──────────────────────────────────────
+_kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
 _MUTEX_NAME = "Global\\TPVElite_Installer_Mutex"
-_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, _MUTEX_NAME)
-if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+_mutex_handle = _kernel32.CreateMutexW(None, True, _MUTEX_NAME)
+if ctypes.get_last_error() == 183:  # ERROR_ALREADY_EXISTS
     ctypes.windll.user32.MessageBoxW(
         0,
         "El instalador ya está en ejecución.\nCerrá la ventana anterior antes de continuar.",
         "Sistema TPV Elite — Instalador",
-        0x30  # MB_ICONWARNING
+        0x30
     )
     sys.exit(0)
 
@@ -142,19 +143,34 @@ def app_source():
     return os.path.join(source_dir(), "app")
 
 def python_exe():
-    """Devuelve pythonw.exe del sistema. Cuando corre como .exe PyInstaller,
-    sys.executable apunta al propio instalador, así que hay que buscar Python."""
+    """Devuelve pythonw.exe del sistema.
+    Cuando corre como exe PyInstaller, sys.executable es el propio installer."""
     if not getattr(sys, 'frozen', False):
-        return sys.executable  # ejecución directa: OK
+        return sys.executable
 
-    # 1. Buscar en PATH
+    # 1. Python Launcher (py.exe) — lo más confiable en Windows
+    py_launcher = shutil.which('py')
+    if py_launcher:
+        try:
+            r = subprocess.run(
+                [py_launcher, '-c',
+                 'import sys,os; pw=os.path.join(os.path.dirname(sys.executable),"pythonw.exe"); '
+                 'print(pw if os.path.exists(pw) else sys.executable)'],
+                capture_output=True, text=True, timeout=10
+            )
+            if r.returncode == 0 and r.stdout.strip():
+                return r.stdout.strip()
+        except Exception:
+            pass
+
+    # 2. Buscar en PATH
     for name in ('pythonw.exe', 'python.exe'):
         found = shutil.which(name)
         if found:
             return found
 
-    # 2. Buscar en el Registro de Windows
-    for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+    # 3. Buscar en el Registro de Windows
+    for hive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
         for subkey in (
             r'SOFTWARE\Python\PythonCore',
             r'SOFTWARE\WOW6432Node\Python\PythonCore',
@@ -166,9 +182,9 @@ def python_exe():
                         try:
                             ver = winreg.EnumKey(k, i)
                             with winreg.OpenKey(hive, f'{subkey}\\{ver}\\InstallPath') as kp:
-                                path = winreg.QueryValue(kp, '')
+                                path = winreg.QueryValue(kp, '').strip()
                                 for name in ('pythonw.exe', 'python.exe'):
-                                    full = os.path.join(path.strip(), name)
+                                    full = os.path.join(path, name)
                                     if os.path.exists(full):
                                         return full
                             i += 1
@@ -179,7 +195,7 @@ def python_exe():
 
     raise RuntimeError(
         "No se encontró Python instalado en el sistema.\n"
-        "Instalá Python desde https://python.org antes de ejecutar la aplicación."
+        "Instalá Python desde https://python.org y volvé a ejecutar el instalador."
     )
 
 # ─── Instalador ──────────────────────────────────────────────────────────────
@@ -221,9 +237,26 @@ class Installer:
         self._emit("📂 Copiando archivos de la aplicación…", 5)
         src = app_source()
         dst = self.app_dest
+
+        # Detectar si el app está corriendo (tiene archivos bloqueados)
         if os.path.exists(dst):
-            shutil.rmtree(dst)
-        shutil.copytree(src, dst)
+            main_py = os.path.join(dst, "main.py")
+            db_file = os.path.join(dst, "database.db")
+            # Intentar abrir en escritura para detectar si están bloqueados
+            for check_file in (db_file, main_py):
+                if os.path.exists(check_file):
+                    try:
+                        with open(check_file, 'a'):
+                            pass
+                    except PermissionError:
+                        raise RuntimeError(
+                            "El Sistema TPV Elite está abierto.\n"
+                            "Cerrá la aplicación antes de continuar con la instalación."
+                        )
+
+        # Crear destino si no existe; si existe, copiar encima sin borrar
+        os.makedirs(dst, exist_ok=True)
+        shutil.copytree(src, dst, dirs_exist_ok=True)
         self._emit(f"   → Archivos copiados a: {dst}", 30)
 
     def _install_deps(self):
