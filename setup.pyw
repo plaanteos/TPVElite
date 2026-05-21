@@ -279,27 +279,22 @@ class Installer:
 
     def _create_launcher(self):
         self._emit("🚀 Creando lanzador…", 75)
-        py = python_exe()
-        # Preferir pythonw.exe para evitar consola visible
-        pythonw = os.path.join(os.path.dirname(py), "pythonw.exe")
-        if not os.path.exists(pythonw):
-            pythonw = py
         main = os.path.join(self.app_dest, "main.py")
 
-        # Lanzador principal: .vbs — corre pythonw sin mostrar ninguna
-        # ventana CMD. Doble clic en este archivo abre la app directamente.
+        # Lanzador principal: .vbs — corre pythonw sin mostrar ventana CMD.
+        # Usa "pythonw" por nombre (PATH) en lugar de ruta absoluta para que
+        # funcione en cualquier dispositivo donde Python esté instalado.
         vbs = os.path.join(self.app_dest, "Lanzar TPV Elite.vbs")
         with open(vbs, "w", encoding="utf-8") as f:
             f.write(
                 'Set WS = CreateObject("WScript.Shell")\n'
                 f'WS.CurrentDirectory = "{self.app_dest}"\n'
-                f'WS.Run Chr(34) & "{pythonw}" & Chr(34)'
-                f' & " " & Chr(34) & "{main}" & Chr(34), 0\n'
+                f'WS.Run "pythonw " & Chr(34) & "{main}" & Chr(34), 0\n'
                 'Set WS = Nothing\n'
             )
         self._emit(f"   → Lanzador: {vbs}", 78)
 
-        # Lanzador de debug: .bat con python.exe (consola visible) y
+        # Lanzador de debug: .bat con python (consola visible) y
         # pausa automática en caso de error — útil para diagnosticar
         # problemas de inicio en el dispositivo del cliente.
         bat = os.path.join(self.app_dest, "Debug - Abrir con consola.bat")
@@ -308,7 +303,7 @@ class Installer:
                 f'@echo off\n'
                 f'cd /d "{self.app_dest}"\n'
                 f'echo Iniciando {APP_NAME}...\n'
-                f'"{py}" "{main}"\n'
+                f'python "{main}"\n'
                 f'if %ERRORLEVEL% NEQ 0 (\n'
                 f'    echo.\n'
                 f'    echo La aplicacion cerro con error %ERRORLEVEL%\n'
