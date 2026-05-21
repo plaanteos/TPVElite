@@ -269,6 +269,20 @@ class Installer:
                             "Cerrá la aplicación antes de continuar con la instalación."
                         )
 
+        # Instalación limpia: eliminar .db y config antes de copiar
+        if self.opts.get('reset_data'):
+            self._emit("   🗑  Limpiando datos anteriores…")
+            for pattern in ('*.db', '*.db-shm', '*.db-wal', 'config.json', 'logs'):
+                import glob
+                for f in glob.glob(os.path.join(dst, pattern)):
+                    try:
+                        if os.path.isfile(f):
+                            os.remove(f)
+                        elif os.path.isdir(f):
+                            shutil.rmtree(f)
+                    except OSError:
+                        pass
+
         # Crear destino si no existe; si existe, copiar encima sin borrar.
         # Se excluyen archivos .db para no sobreescribir la base de datos del usuario.
         os.makedirs(dst, exist_ok=True)
@@ -447,9 +461,10 @@ class SetupWizard(tk.Tk):
         self.install_dir = tk.StringVar(
             value=os.path.join(os.environ.get("LOCALAPPDATA", "C:\\"), APP_FOLDER)
         )
-        self.opt_desktop = tk.BooleanVar(value=True)
-        self.opt_menu    = tk.BooleanVar(value=True)
-        self.opt_launch  = tk.BooleanVar(value=True)
+        self.opt_desktop    = tk.BooleanVar(value=True)
+        self.opt_menu       = tk.BooleanVar(value=True)
+        self.opt_launch     = tk.BooleanVar(value=True)
+        self.opt_reset_data = tk.BooleanVar(value=False)
 
         self._build_layout()
         self._show_step(0)
@@ -942,6 +957,27 @@ class SetupWizard(tk.Tk):
                      font=('Segoe UI', 8),
                      bg=C['card'], fg=C['muted']).pack(anchor='w')
 
+        # Opción inicio limpio
+        sep = tk.Frame(inner, bg=C['border'], height=1)
+        sep.pack(fill='x', pady=(10, 8))
+        tk.Label(inner, text="Datos",
+                 font=('Segoe UI', 10, 'bold'),
+                 bg=C['card'], fg=C['text']).pack(anchor='w', pady=(0, 6))
+        reset_row = tk.Frame(inner, bg=C['card'])
+        reset_row.pack(fill='x')
+        chk_reset = tk.Checkbutton(reset_row, variable=self.opt_reset_data,
+                                   bg=C['card'], activebackground=C['card'],
+                                   selectcolor=C['danger'])
+        chk_reset.pack(side='left')
+        txt_reset = tk.Frame(reset_row, bg=C['card'])
+        txt_reset.pack(side='left', padx=(4, 0))
+        tk.Label(txt_reset, text="⚠️  Instalación limpia (nuevo cliente)",
+                 font=('Segoe UI', 10, 'bold'),
+                 bg=C['card'], fg=C['warn']).pack(anchor='w')
+        tk.Label(txt_reset, text="Elimina la base de datos y configuración existentes. Usar solo en equipos nuevos.",
+                 font=('Segoe UI', 8),
+                 bg=C['card'], fg=C['muted']).pack(anchor='w')
+
         # Resumen
         sum_card = self._card()
         sum_inner = tk.Frame(sum_card, bg=C['card'])
@@ -1023,9 +1059,20 @@ class SetupWizard(tk.Tk):
         self._prog_label.configure(text=f"{int(pct)}%  completado")
 
     def _start_install(self):
+        if self.opt_reset_data.get():
+            confirmar = messagebox.askyesno(
+                "⚠️  Instalación limpia",
+                "Esta opción ELIMINARÁ todos los datos existentes:\n"
+                "base de datos, configuración y registros.\n\n"
+                "¿Estás seguro? Esta acción no se puede deshacer.",
+                icon='warning', parent=self
+            )
+            if not confirmar:
+                return
         opts = {
             'shortcut_desktop': self.opt_desktop.get(),
             'shortcut_menu':    self.opt_menu.get(),
+            'reset_data':       self.opt_reset_data.get(),
         }
         installer = Installer(self.install_dir.get(), opts)
         installer.on_step = lambda msg: self.after(0, self._append_log, msg)

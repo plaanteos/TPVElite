@@ -13,12 +13,16 @@ import sys
 # pero Tkinter lo busca en <python_dir>/lib/tcl8.x → falla si TCL_LIBRARY no está seteado.
 # Esto ocurre especialmente con instalaciones silenciosas (/quiet InstallAllUsers=0).
 def _fix_tcl_tk():
-    if os.environ.get('TCL_LIBRARY'):
-        return  # Ya está configurado, no tocar
+    existing = os.environ.get('TCL_LIBRARY', '')
+    # Valida que el path existente contenga init.tcl real.
+    # Un PyInstaller padre puede heredar TCL_LIBRARY apuntando a su propia
+    # carpeta temp (_MEIxxxxx) que ya no existe cuando se lanza la app hija.
+    if existing and os.path.isfile(os.path.join(existing, 'init.tcl')):
+        return  # Path válido, no tocar
     py_dir = os.path.dirname(sys.executable)
     for ver in ('8.6', '8.5'):
         tcl_path = os.path.join(py_dir, 'tcl', f'tcl{ver}')
-        if os.path.isdir(tcl_path):
+        if os.path.isdir(tcl_path) and os.path.isfile(os.path.join(tcl_path, 'init.tcl')):
             os.environ['TCL_LIBRARY'] = tcl_path
             tk_path = os.path.join(py_dir, 'tcl', f'tk{ver}')
             if os.path.isdir(tk_path):
