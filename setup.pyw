@@ -13,6 +13,7 @@ import os
 import winreg
 import tempfile
 import ctypes
+import urllib.request
 
 # ─── Instancia única (mutex de Windows) ──────────────────────────────────────
 _kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -579,21 +580,7 @@ class SetupWizard(tk.Tk):
     def _next(self):
         # Validaciones por paso
         if self.current_step == 0:
-            # Verificar Python antes de continuar
-            try:
-                python_exe()
-            except RuntimeError:
-                respuesta = messagebox.askyesno(
-                    "Python no instalado",
-                    "Esta aplicación requiere Python 3.x instalado en el sistema.\n\n"
-                    "Python no fue detectado en este equipo.\n\n"
-                    "¿Deseas abrir la página de descarga de Python ahora?\n"
-                    "(Después de instalar Python, volvé a ejecutar este instalador)",
-                    parent=self
-                )
-                if respuesta:
-                    import webbrowser
-                    webbrowser.open("https://www.python.org/downloads/")
+            if not self._check_or_install_python():
                 return
         if self.current_step == 1 and not self.license_accepted.get():
             messagebox.showwarning(
@@ -604,6 +591,139 @@ class SetupWizard(tk.Tk):
             return
         if self.current_step < len(STEPS) - 1:
             self._show_step(self.current_step + 1)
+
+    def _check_or_install_python(self):
+        """Verifica si Python está disponible. Si no, lo descarga e instala automáticamente.
+        Devuelve True si Python quedó disponible, False si el usuario canceló o falló."""
+        try:
+            python_exe()
+            return True
+        except RuntimeError:
+            pass
+
+        respuesta = messagebox.askyesno(
+            "Python no encontrado",
+            "Esta aplicación requiere Python 3.x para funcionar.\n\n"
+            "Python no está instalado en este equipo.\n\n"
+            "¿Querés que lo instalemos automáticamente? (~25 MB)\n"
+            "Se instalará Python 3.13 en silencio mientras seguís con el asistente.",
+            parent=self
+        )
+        if not respuesta:
+            import webbrowser
+            webbrowser.open("https://www.python.org/downloads/")
+            return False
+
+        return self._instalar_python_auto()
+
+    def _instalar_python_auto(self):
+        """Descarga e instala Python 3.13 silenciosamente.
+        Muestra ventana de progreso. Devuelve True si quedó disponible."""
+        PYTHON_URL = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe"
+
+        # --- Ventana de progreso ---
+        dlg = tk.Toplevel(self)
+        dlg.title("Instalando Python…")
+        dlg.resizable(False, False)
+        dlg.transient(self)
+        dlg.grab_set()
+        dlg.configure(bg=C['bg'])
+        center_window(dlg, 440, 170)
+
+        tk.Label(dlg, text="⏳  Instalando Python 3.13 automáticamente…",
+                 font=('Segoe UI', 11, 'bold'),
+                 bg=C['bg'], fg=C['text']).pack(pady=(22, 6))
+
+        status_var = tk.StringVar(value="Descargando Python (~25 MB)…")
+        tk.Label(dlg, textvariable=status_var,
+                 font=('Segoe UI', 9), bg=C['bg'], fg=C['muted']).pack()
+
+        prog = ttk.Progressbar(dlg, mode='indeterminate', length=380)
+        prog.pack(pady=(12, 22))
+        prog.start(10)
+
+        resultado = {'ok': False, 'error': None}
+
+        def _hilo():
+            tmp_exe = None
+            try:
+                # 1. Descargar
+                tmp_exe = tempfile.mktemp(suffix='.exe')
+                urllib.request.urlretrieve(PYTHON_URL, tmp_exe)
+
+                # 2. Instalar silenciosamente para el usuario actual, agrega al PATH
+                dlg.after(0, lambda: status_var.set("Instalando Python (puede tardar un momento)…"))
+                subprocess.run(
+                    [
+                        tmp_exe,
+                        '/quiet',
+                        'InstallAllUsers=0',
+                        'PrependPath=1',
+                        'Include_launcher=1',
+                        'Include_test=0',
+                        'Include_doc=0',
+                    ],
+                    check=True, timeout=300
+                )
+                resultado['ok'] = True
+            except Exception as exc:
+                resultado['error'] = str(exc)
+            finally:
+                if tmp_exe and os.path.exists(tmp_exe):
+                    try:
+                        os.unlink(tmp_exe)
+                    except OSError:
+                        pass
+                dlg.after(0, dlg.destroy)
+
+        threading.Thread(target=_hilo, daemon=True).start()
+        self.wait_window(dlg)
+
+        if not resultado['ok']:
+            messagebox.showerror(
+                "Error al instalar Python",
+                f"No se pudo instalar Python automáticamente.\n\n"
+                f"Error: {resultado['error']}\n\n"
+                "Instalalo manualmente desde python.org y volvé a ejecutar el instalador.",
+                parent=self
+            )
+            import webbrowser
+            webbrowser.open("https://www.python.org/downloads/")
+            return False
+
+        # 3. Recargar PATH desde el registro para que python_exe() lo encuentre
+        #    (el proceso actual no recibe el cambio de PATH del instalador)
+        for hive, subkey in [
+            (winreg.HKEY_CURRENT_USER, 'Environment'),
+            (winreg.HKEY_LOCAL_MACHINE,
+             r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'),
+        ]:
+            try:
+                with winreg.OpenKey(hive, subkey) as k:
+                    val, _ = winreg.QueryValueEx(k, 'PATH')
+                    if val and val not in os.environ.get('PATH', ''):
+                        os.environ['PATH'] = os.environ.get('PATH', '') + ';' + val
+            except OSError:
+                pass
+
+        # 4. Verificar que ahora se detecte
+        try:
+            python_exe()
+            messagebox.showinfo(
+                "Python instalado",
+                "✅ Python 3.13 se instaló correctamente.\n"
+                "La instalación del Sistema TPV Elite continuará ahora.",
+                parent=self
+            )
+            return True
+        except RuntimeError:
+            messagebox.showerror(
+                "Python instalado pero no detectado",
+                "Python se instaló pero no pudo ser detectado en esta sesión.\n\n"
+                "Cerrá y volvé a ejecutar el instalador para que tome efecto.",
+                parent=self
+            )
+            return False
 
     def _prev(self):
         if self.current_step > 0:
