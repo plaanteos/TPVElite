@@ -708,6 +708,26 @@
     .footer-links a { font-size: 13px; color: var(--muted); transition: color .2s; }
     .footer-links a:hover { color: var(--text); }
 
+    /* ── Contador de descargas ───────────────────────────────── */
+    .dl-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 6px 18px;
+      background: rgba(16,185,129,.08);
+      border: 1px solid rgba(16,185,129,.22);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--success);
+    }
+    .dl-counter .dl-num {
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .dl-counter.hidden { display: none; }
+
     /* ── Animaciones ──────────────────────────────────────────── */
     @keyframes float {
       0%, 100% { transform: translateY(0); }
@@ -783,6 +803,11 @@
       <span>✓ Se instala en tu PC</span> &nbsp;·&nbsp;
       <span>✓ Funciona sin internet</span>
     </p>
+
+    <div class="dl-counter hidden" id="dl-counter">
+      ⬇ <span class="dl-num" id="dl-count">0</span> descargas
+    </div>
+
     <div>
       <span class="smartscreen-note" onclick="document.getElementById('smartscreen-modal').classList.add('open')">
         ⚠️ ¿Windows bloqueó el archivo? Hacé clic aquí para ver cómo instalarlo igual
@@ -1069,8 +1094,39 @@
   // Activar hero mockup inmediatamente
   document.querySelector('.hero-mockup').classList.add('visible');
 
-  // Notificación de descarga → Formspree
+  // ── Contador de descargas (CountAPI) ─────────────────────────
+  const COUNTER_NAMESPACE = 'tpvelite-app';
+  const COUNTER_KEY       = 'downloads';
+  const COUNTER_BASE_URL  = `https://api.countapi.xyz`;
+
+  function formatCount(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+    return n.toString();
+  }
+
+  function showCounter(value) {
+    const el = document.getElementById('dl-counter');
+    const num = document.getElementById('dl-count');
+    if (!el || !num || value < 1) return;
+    num.textContent = formatCount(value);
+    el.classList.remove('hidden');
+  }
+
+  // Cargar contador al abrir la página
+  fetch(`${COUNTER_BASE_URL}/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`)
+    .then(r => r.ok ? r.json() : null)
+    .then(d => d && d.value != null && showCounter(d.value))
+    .catch(() => {});
+
+  // Notificación de descarga → CountAPI + Formspree
   function trackDownload() {
+    // Incrementar contador
+    fetch(`${COUNTER_BASE_URL}/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && d.value != null && showCounter(d.value))
+      .catch(() => {});
+
+    // Notificación por email (Formspree)
     fetch('https://formspree.io/f/xojbelgl', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },

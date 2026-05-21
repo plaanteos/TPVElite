@@ -1,22 +1,65 @@
-345 INFO: PyInstaller: 6.20.0, contrib hooks: 2026.5
-347 INFO: Python: 3.13.12
-423 INFO: Platform: Windows-11-10.0.26200-SP0
-423 INFO: Python environment: C:\Users\Jesu\AppData\Local\Programs\Python\Python313
-425 INFO: wrote c:\Users\Jesu\Documents\aplicaciones\app heladeria\TPVElite_Setup.spec
-432 INFO: Module search paths (PYTHONPATH):
-['c:\\Users\\Jesu\\Documents\\aplicaciones\\app heladeria',
+334 INFO: PyInstaller: 6.20.0, contrib hooks: 2026.5
+335 INFO: Python: 3.13.12
+360 INFO: Platform: Windows-11-10.0.26200-SP0
+360 INFO: Python environment: C:\Users\Jesu\AppData\Local\Programs\Python\Python313
+361 INFO: wrote C:\Users\Jesu\Documents\aplicaciones\app heladeria\TPVElite_Setup.spec
+365 INFO: Module search paths (PYTHONPATH):
+['C:\\Users\\Jesu\\Documents\\aplicaciones\\app heladeria',
  'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\python313.zip',
  'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\DLLs',
  'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib',
  'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313',
  'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages',
- 'c:\\Users\\Jesu\\Documents\\aplicaciones\\app heladeria']
+ 'C:\\Users\\Jesu\\Documents\\aplicaciones\\app heladeria']
 pygame 2.6.1 (SDL 2.28.4, Python 3.13.12)
 Hello from the pygame community. https://www.pygame.org/contribute.html
-1432 INFO: Appending 'datas' from .spec
-1538 INFO: checking Analysis
-1828 INFO: checking PYZ
-1919 INFO: checking PKG
-2062 INFO: Bootloader C:\Users\Jesu\AppData\Local\Programs\Python\Python313\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
-2062 INFO: checking EXE
-2103 INFO: Build complete! The results are available in: c:\Users\Jesu\Documents\aplicaciones\app heladeria\dist
+2420 INFO: Appending 'datas' from .spec
+2455 INFO: checking Analysis
+2519 INFO: Building because C:\Users\Jesu\Documents\aplicaciones\app heladeria\setup.pyw changed
+2519 INFO: Looking for Python shared library...
+2519 INFO: Using Python shared library: C:\Users\Jesu\AppData\Local\Programs\Python\Python313\python313.dll
+2519 INFO: Running Analysis Analysis-00.toc
+2519 INFO: Target bytecode optimization level: 0
+2519 INFO: Initializing module dependency graph...
+2521 INFO: Initializing module graph hook caches...
+2569 INFO: Analyzing modules for base_library.zip ...
+3963 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+4759 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+6500 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+9638 INFO: Caching module dependency graph...
+9671 INFO: Analyzing C:\Users\Jesu\Documents\aplicaciones\app heladeria\setup.pyw
+9712 INFO: Processing pre-find-module-path hook 'hook-tkinter.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path'
+9715 INFO: TclTkInfo: initializing cached Tcl/Tk info...
+10097 INFO: Processing standard module hook 'hook-_tkinter.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+10281 INFO: Processing standard module hook 'hook-sysconfig.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+10287 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+10807 INFO: Processing module hooks (post-graph stage)...
+10810 INFO: Processing standard module hook 'hook-_tkinter.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks'
+10826 INFO: Performing binary vs. data reclassification (1887 entries)
+20275 INFO: Looking for ctypes DLLs
+20292 INFO: Analyzing run-time hooks ...
+20293 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+20307 INFO: Including run-time hook 'pyi_rth__tkinter.py' from 'C:\\Users\\Jesu\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+20353 INFO: Creating base_library.zip...
+20374 INFO: Looking for dynamic libraries
+20497 INFO: Extra DLL search directories (AddDllDirectory): []
+20497 INFO: Extra DLL search directories (PATH): []
+20897 INFO: Warnings written to C:\Users\Jesu\Documents\aplicaciones\app heladeria\build\TPVElite_Setup\warn-TPVElite_Setup.txt
+20911 INFO: Graph cross-reference written to C:\Users\Jesu\Documents\aplicaciones\app heladeria\build\TPVElite_Setup\xref-TPVElite_Setup.html
+21021 INFO: checking PYZ
+21068 INFO: checking PKG
+21107 INFO: Building because toc changed
+21107 INFO: Building PKG (CArchive) TPVElite_Setup.pkg
+26458 INFO: Building PKG (CArchive) TPVElite_Setup.pkg completed successfully.
+26497 INFO: Bootloader C:\Users\Jesu\AppData\Local\Programs\Python\Python313\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+26497 INFO: checking EXE
+26546 INFO: Building because toc changed
+26546 INFO: Building EXE from EXE-00.toc
+26547 INFO: Copying bootloader EXE to C:\Users\Jesu\Documents\aplicaciones\app heladeria\dist\TPVElite_Setup.exe
+26638 INFO: Copying icon to EXE
+26696 INFO: Copying 0 resources to EXE
+26697 INFO: Embedding manifest in EXE
+26749 INFO: Appending PKG archive to EXE
+26919 INFO: Fixing EXE headers
+29150 INFO: Building EXE from EXE-00.toc completed successfully.
+29188 INFO: Build complete! The results are available in: C:\Users\Jesu\Documents\aplicaciones\app heladeria\dist
