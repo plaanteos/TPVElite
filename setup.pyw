@@ -279,29 +279,63 @@ class Installer:
 
     def _create_launcher(self):
         self._emit("🚀 Creando lanzador…", 75)
-        launcher = os.path.join(self.app_dest, "Lanzar TPV Elite.bat")
         py = python_exe()
-        main = os.path.join(self.app_dest, "main.py")
-        with open(launcher, "w", encoding="utf-8") as f:
-            f.write(f'@echo off\ncd /d "{self.app_dest}"\n"{py}" "{main}"\n')
-        self._emit(f"   → Lanzador: {launcher}", 80)
-
-    def _ps_shortcut(self, lnk_path):
-        """Crea un acceso directo .lnk via PowerShell usando archivo .ps1 temporal
-        para evitar problemas de escaping en rutas con espacios o caracteres especiales."""
-        py = python_exe()
+        # Preferir pythonw.exe para evitar consola visible
         pythonw = os.path.join(os.path.dirname(py), "pythonw.exe")
         if not os.path.exists(pythonw):
             pythonw = py
         main = os.path.join(self.app_dest, "main.py")
+
+        # Lanzador principal: .vbs — corre pythonw sin mostrar ninguna
+        # ventana CMD. Doble clic en este archivo abre la app directamente.
+        vbs = os.path.join(self.app_dest, "Lanzar TPV Elite.vbs")
+        with open(vbs, "w", encoding="utf-8") as f:
+            f.write(
+                'Set WS = CreateObject("WScript.Shell")\n'
+                f'WS.CurrentDirectory = "{self.app_dest}"\n'
+                f'WS.Run Chr(34) & "{pythonw}" & Chr(34)'
+                f' & " " & Chr(34) & "{main}" & Chr(34), 0\n'
+                'Set WS = Nothing\n'
+            )
+        self._emit(f"   → Lanzador: {vbs}", 78)
+
+        # Lanzador de debug: .bat con python.exe (consola visible) y
+        # pausa automática en caso de error — útil para diagnosticar
+        # problemas de inicio en el dispositivo del cliente.
+        bat = os.path.join(self.app_dest, "Debug - Abrir con consola.bat")
+        with open(bat, "w", encoding="utf-8") as f:
+            f.write(
+                f'@echo off\n'
+                f'cd /d "{self.app_dest}"\n'
+                f'echo Iniciando {APP_NAME}...\n'
+                f'"{py}" "{main}"\n'
+                f'if %ERRORLEVEL% NEQ 0 (\n'
+                f'    echo.\n'
+                f'    echo La aplicacion cerro con error %ERRORLEVEL%\n'
+                f'    echo Revisa los logs en: {self.app_dest}\\logs\n'
+                f'    pause\n'
+                f')\n'
+            )
+        self._emit(f"   → Debug: {bat}", 80)
+
+    def _ps_shortcut(self, lnk_path):
+        """Crea un acceso directo .lnk via PowerShell usando archivo .ps1 temporal
+        para evitar problemas de escaping en rutas con espacios o caracteres especiales."""
+        vbs  = os.path.join(self.app_dest, "Lanzar TPV Elite.vbs")
         icon = os.path.join(self.app_dest, "tpvelite.ico")
+
+        # El shortcut apunta a wscript.exe + el .vbs lanzador.
+        # Esto evita que aparezca una ventana CMD al hacer doble clic,
+        # y es equivalente a la configuración anterior con pythonw.exe.
+        wscript = os.path.join(os.environ.get("SystemRoot", "C:\\Windows"),
+                               "System32", "wscript.exe")
 
         # Escribir script .ps1 a archivo temporal — sin problemas de escape
         ps_content = (
             f"$s = New-Object -COM WScript.Shell\n"
             f"$lnk = $s.CreateShortcut('{lnk_path}')\n"
-            f"$lnk.TargetPath = '{pythonw}'\n"
-            f"$lnk.Arguments = '\"{main}\"'\n"
+            f"$lnk.TargetPath = '{wscript}'\n"
+            f"$lnk.Arguments = '\"{vbs}\"'\n"
             f"$lnk.WorkingDirectory = '{self.app_dest}'\n"
             f"$lnk.Description = '{APP_NAME}'\n"
             f"$lnk.IconLocation = '{icon},0'\n"
@@ -867,9 +901,30 @@ class SetupWizard(tk.Tk):
 
     def _launch_app(self):
         app_dest = self._installer.app_dest if self._installer else self.install_dir.get()
-        py   = python_exe()
+        py = python_exe()
+        # Preferir pythonw.exe para no mostrar consola
+        pythonw = os.path.join(os.path.dirname(py), "pythonw.exe")
+        if not os.path.exists(pythonw):
+            pythonw = py
         main = os.path.join(app_dest, "main.py")
-        subprocess.Popen([py, main], cwd=app_dest)
+
+        # Limpiar variables de entorno de PyInstaller antes de lanzar el hijo.
+        # En modo --onefile, el installer setea TCL_LIBRARY y TK_LIBRARY
+        # apuntando al directorio temporal (_MEIxxxx) que se borra al salir.
+        # Sin esto, tkinter del proceso hijo crashea silenciosamente al
+        # intentar cargar las librerías desde una ruta que ya no existe.
+        env = os.environ.copy()
+        for key in ('TCL_LIBRARY', 'TK_LIBRARY', 'TCL_DATA',
+                    '_MEIPASS2', 'PYTHONPATH',
+                    'PYINSTALLER_RESET_ENVIRONMENT'):
+            env.pop(key, None)
+
+        subprocess.Popen(
+            [pythonw, main],
+            cwd=app_dest,
+            env=env,
+            creationflags=subprocess.DETACHED_PROCESS,
+        )
         self.destroy()
 
     def _page_done(self):
