@@ -5,6 +5,29 @@ Versión: 3.0.0 - ELITE EDITION
 Descripción: Aplicación con interfaz ultra moderna, animaciones fluidas y diseño premium
 """
 
+import os
+import sys
+
+# ── Fix Tcl/Tk para instalaciones de usuario en Windows ──────────────────────
+# Python instalado para el usuario actual ubica Tcl en <python_dir>/tcl/tcl8.x
+# pero Tkinter lo busca en <python_dir>/lib/tcl8.x → falla si TCL_LIBRARY no está seteado.
+# Esto ocurre especialmente con instalaciones silenciosas (/quiet InstallAllUsers=0).
+def _fix_tcl_tk():
+    if os.environ.get('TCL_LIBRARY'):
+        return  # Ya está configurado, no tocar
+    py_dir = os.path.dirname(sys.executable)
+    for ver in ('8.6', '8.5'):
+        tcl_path = os.path.join(py_dir, 'tcl', f'tcl{ver}')
+        if os.path.isdir(tcl_path):
+            os.environ['TCL_LIBRARY'] = tcl_path
+            tk_path = os.path.join(py_dir, 'tcl', f'tk{ver}')
+            if os.path.isdir(tk_path):
+                os.environ['TK_LIBRARY'] = tk_path
+            break
+
+_fix_tcl_tk()
+# ─────────────────────────────────────────────────────────────────────────────
+
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
