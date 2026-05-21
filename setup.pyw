@@ -279,31 +279,35 @@ class Installer:
 
     def _create_launcher(self):
         self._emit("🚀 Creando lanzador…", 75)
+        py = python_exe()  # Ruta completa al Python del sistema destino
+        # Preferir pythonw.exe (sin consola) si existe junto a python.exe
+        pythonw = os.path.join(os.path.dirname(py), "pythonw.exe")
+        if not os.path.exists(pythonw):
+            pythonw = py
         main = os.path.join(self.app_dest, "main.py")
 
-        # Lanzador principal: .vbs — corre pythonw sin mostrar ventana CMD.
-        # Usa "pythonw" por nombre (PATH) en lugar de ruta absoluta para que
-        # funcione en cualquier dispositivo donde Python esté instalado.
+        # Lanzador principal: .vbs con la ruta COMPLETA al pythonw del sistema.
+        # No usar "pythonw" por nombre porque puede no estar en PATH.
         vbs = os.path.join(self.app_dest, "Lanzar TPV Elite.vbs")
         with open(vbs, "w", encoding="utf-8") as f:
             f.write(
                 'Set WS = CreateObject("WScript.Shell")\n'
                 f'WS.CurrentDirectory = "{self.app_dest}"\n'
-                f'WS.Run "pythonw " & Chr(34) & "{main}" & Chr(34), 0\n'
+                f'WS.Run Chr(34) & "{pythonw}" & Chr(34)'
+                f' & " " & Chr(34) & "{main}" & Chr(34), 0\n'
                 'Set WS = Nothing\n'
             )
         self._emit(f"   → Lanzador: {vbs}", 78)
 
-        # Lanzador de debug: .bat con python (consola visible) y
-        # pausa automática en caso de error — útil para diagnosticar
-        # problemas de inicio en el dispositivo del cliente.
+        # Lanzador de debug: .bat con ruta completa a python.exe y
+        # pausa automática en caso de error.
         bat = os.path.join(self.app_dest, "Debug - Abrir con consola.bat")
         with open(bat, "w", encoding="utf-8") as f:
             f.write(
                 f'@echo off\n'
                 f'cd /d "{self.app_dest}"\n'
                 f'echo Iniciando {APP_NAME}...\n'
-                f'python "{main}"\n'
+                f'"{py}" "{main}"\n'
                 f'if %ERRORLEVEL% NEQ 0 (\n'
                 f'    echo.\n'
                 f'    echo La aplicacion cerro con error %ERRORLEVEL%\n'
@@ -574,6 +578,23 @@ class SetupWizard(tk.Tk):
 
     def _next(self):
         # Validaciones por paso
+        if self.current_step == 0:
+            # Verificar Python antes de continuar
+            try:
+                python_exe()
+            except RuntimeError:
+                respuesta = messagebox.askyesno(
+                    "Python no instalado",
+                    "Esta aplicación requiere Python 3.x instalado en el sistema.\n\n"
+                    "Python no fue detectado en este equipo.\n\n"
+                    "¿Deseas abrir la página de descarga de Python ahora?\n"
+                    "(Después de instalar Python, volvé a ejecutar este instalador)",
+                    parent=self
+                )
+                if respuesta:
+                    import webbrowser
+                    webbrowser.open("https://www.python.org/downloads/")
+                return
         if self.current_step == 1 and not self.license_accepted.get():
             messagebox.showwarning(
                 "Licencia",
