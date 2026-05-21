@@ -144,15 +144,28 @@ def source_dir():
 def app_source():
     return os.path.join(source_dir(), "app")
 
+def _is_real_python(path):
+    """Verifica que el ejecutable sea Python real y no el stub del Microsoft Store.
+    El stub de WindowsApps devuelve código de salida distinto de 0 cuando se le pasan args."""
+    try:
+        r = subprocess.run(
+            [path, '-c', 'import sys; print(sys.version)'],
+            capture_output=True, text=True, timeout=8
+        )
+        return r.returncode == 0 and r.stdout.strip() != ''
+    except Exception:
+        return False
+
+
 def python_exe():
-    """Devuelve pythonw.exe del sistema.
+    """Devuelve pythonw.exe del sistema (Python real, no el stub de Microsoft Store).
     Cuando corre como exe PyInstaller, sys.executable es el propio installer."""
     if not getattr(sys, 'frozen', False):
         return sys.executable
 
     # 1. Python Launcher (py.exe) — lo más confiable en Windows
     py_launcher = shutil.which('py')
-    if py_launcher:
+    if py_launcher and _is_real_python(py_launcher):
         try:
             r = subprocess.run(
                 [py_launcher, '-c',
@@ -165,10 +178,10 @@ def python_exe():
         except Exception:
             pass
 
-    # 2. Buscar en PATH
+    # 2. Buscar en PATH — excluir el stub de Microsoft Store (WindowsApps)
     for name in ('pythonw.exe', 'python.exe'):
         found = shutil.which(name)
-        if found:
+        if found and 'WindowsApps' not in found and _is_real_python(found):
             return found
 
     # 3. Buscar en el Registro de Windows
@@ -187,7 +200,7 @@ def python_exe():
                                 path = winreg.QueryValue(kp, '').strip()
                                 for name in ('pythonw.exe', 'python.exe'):
                                     full = os.path.join(path, name)
-                                    if os.path.exists(full):
+                                    if os.path.exists(full) and _is_real_python(full):
                                         return full
                             i += 1
                         except OSError:
