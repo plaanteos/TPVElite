@@ -34,7 +34,7 @@ APP_NAME    = "Sistema TPV Elite"
 APP_VERSION = "2.0"
 APP_AUTHOR  = "TPV Elite"
 APP_FOLDER  = "TPVElite"          # sub-carpeta en destino
-WIN_W, WIN_H = 720, 580
+WIN_W, WIN_H = 720, 640
 
 # Dependencias a instalar via pip
 DEPS = [
@@ -284,10 +284,12 @@ class Installer:
                         pass
 
         # Crear destino si no existe; si existe, copiar encima sin borrar.
-        # Se excluyen archivos .db para no sobreescribir la base de datos del usuario.
+        # Se excluyen .db para no sobreescribir datos del usuario.
+        # Se excluye config.json en updates normales para preservar la configuración del negocio.
         os.makedirs(dst, exist_ok=True)
+        ignore_extra = () if self.opts.get('reset_data') else ('config.json',)
         shutil.copytree(src, dst, dirs_exist_ok=True,
-                        ignore=shutil.ignore_patterns('*.db', '*.db-shm', '*.db-wal'))
+                        ignore=shutil.ignore_patterns('*.db', '*.db-shm', '*.db-wal', *ignore_extra))
         self._emit(f"   → Archivos copiados a: {dst}", 30)
 
     def _install_deps(self):
@@ -483,16 +485,16 @@ class SetupWizard(tk.Tk):
         right = tk.Frame(self, bg=C['bg'])
         right.pack(side='left', fill='both', expand=True)
 
-        # Contenido scrollable
+        # Separador + botones de navegación (se empaquetan primero para anclarlos al fondo)
+        nav = tk.Frame(right, bg=C['bg'])
+        nav.pack(side='bottom', fill='x', padx=28, pady=14)
+
+        sep = tk.Frame(right, bg=C['border'], height=1)
+        sep.pack(side='bottom', fill='x', padx=0)
+
+        # Contenido scrollable (ocupa el espacio restante)
         self.content = tk.Frame(right, bg=C['bg'])
         self.content.pack(fill='both', expand=True, padx=32, pady=16)
-
-        # Separador + botones de navegación
-        sep = tk.Frame(right, bg=C['border'], height=1)
-        sep.pack(fill='x', padx=0)
-
-        nav = tk.Frame(right, bg=C['bg'])
-        nav.pack(fill='x', padx=28, pady=14)
 
         self.btn_back = tk.Button(
             nav, text="◀  Anterior", font=('Segoe UI', 10),
