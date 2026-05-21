@@ -901,22 +901,37 @@ class SetupWizard(tk.Tk):
 
     def _launch_app(self):
         app_dest = self._installer.app_dest if self._installer else self.install_dir.get()
-        py = python_exe()
-        # Preferir pythonw.exe para no mostrar consola
+
+        # Abrir la app via el lanzador .vbs usando os.startfile / ShellExecute.
+        # Esto crea un proceso 100% independiente del installer (sin herencia de
+        # variables PyInstaller como TCL_LIBRARY, TK_LIBRARY, _MEIPASS2, etc.)
+        vbs = os.path.join(app_dest, "Lanzar TPV Elite.vbs")
+        if os.path.exists(vbs):
+            os.startfile(vbs)
+            self.destroy()
+            return
+
+        # Fallback: lanzar pythonw.exe con entorno limpio
+        try:
+            py = python_exe()
+        except RuntimeError:
+            messagebox.showwarning(
+                "Abrir aplicación",
+                "No se pudo encontrar Python para abrir la aplicación.\n"
+                "Abrila manualmente desde la carpeta de instalación.",
+                parent=self,
+            )
+            self.destroy()
+            return
+
         pythonw = os.path.join(os.path.dirname(py), "pythonw.exe")
         if not os.path.exists(pythonw):
             pythonw = py
         main = os.path.join(app_dest, "main.py")
 
-        # Limpiar variables de entorno de PyInstaller antes de lanzar el hijo.
-        # En modo --onefile, el installer setea TCL_LIBRARY y TK_LIBRARY
-        # apuntando al directorio temporal (_MEIxxxx) que se borra al salir.
-        # Sin esto, tkinter del proceso hijo crashea silenciosamente al
-        # intentar cargar las librerías desde una ruta que ya no existe.
         env = os.environ.copy()
         for key in ('TCL_LIBRARY', 'TK_LIBRARY', 'TCL_DATA',
-                    '_MEIPASS2', 'PYTHONPATH',
-                    'PYINSTALLER_RESET_ENVIRONMENT'):
+                    '_MEIPASS2', 'PYINSTALLER_RESET_ENVIRONMENT'):
             env.pop(key, None)
 
         subprocess.Popen(

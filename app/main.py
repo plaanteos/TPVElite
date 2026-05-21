@@ -43,8 +43,11 @@ from utils import (setup_logging, load_config, save_config, resource_path, forma
                    ensure_directory, get_app_data_dir, Validator, ColorHelper)
 
 # Configurar logging
-ensure_directory('logs')
-setup_logging()
+try:
+    ensure_directory('logs')
+    setup_logging()
+except Exception:
+    pass  # Continuar aunque el logging falle al inicio
 logger = logging.getLogger(__name__)
 
 
@@ -8560,11 +8563,48 @@ def main():
         app.run()
         
     except Exception as e:
+        import traceback as _tb
+        import ctypes as _ct
+        _detalles = _tb.format_exc()
         logger.critical(f"Error fatal en la aplicación: {e}", exc_info=True)
-        messagebox.showerror("Error Fatal",
-                           f"Se produjo un error fatal:\n{str(e)}\n\nPor favor contacte al soporte técnico.")
+        # Guardar log de inicio (no depende de tkinter)
+        _log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'startup_error.log')
+        try:
+            with open(_log_path, 'w', encoding='utf-8') as _lf:
+                _lf.write(f"Error al iniciar TPV Elite:\n\n{_detalles}")
+        except Exception:
+            pass
+        # Intentar cerrar ventana tkinter si existe
+        try:
+            messagebox.showerror("Error Fatal",
+                               f"Se produjo un error fatal:\n{str(e)}\n\nDetalles en:\n{_log_path}")
+        except Exception:
+            pass
+        # Messagebox nativo de Windows — funciona aunque tkinter haya fallado
+        _ct.windll.user32.MessageBoxW(
+            0,
+            f"No se pudo iniciar TPV Elite.\n\n{str(e)}\n\nDetalles guardados en:\n{_log_path}",
+            "TPV Elite \u2014 Error de inicio",
+            0x10  # MB_ICONERROR
+        )
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as _exc:
+        import traceback as _tb2
+        import ctypes as _ct2
+        _log2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'startup_error.log')
+        try:
+            with open(_log2, 'w', encoding='utf-8') as _f2:
+                _f2.write(f"Error cr\u00edtico al iniciar:\n\n{_tb2.format_exc()}")
+        except Exception:
+            pass
+        _ct2.windll.user32.MessageBoxW(
+            0,
+            f"Error cr\u00edtico al iniciar TPV Elite:\n\n{str(_exc)}\n\nDetalles en:\n{_log2}",
+            "TPV Elite \u2014 Error",
+            0x10
+        )
