@@ -3,762 +3,1148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TPV Elite — Software de Punto de Venta Profesional</title>
-  <meta name="description" content="Software de punto de venta para cualquier tipo de negocio. Fácil, rápido y profesional. Descargá gratis y empezá hoy." />
+  <title>TPV Elite 3.0 — Punto de Venta Profesional para Negocios Reales</title>
+  <meta name="description" content="TPV Elite 3.0 centraliza ventas, stock, pedidos, reportes y sincronización cloud en una app de escritorio para Windows. Instalación rápida, operación offline y versión Pro disponible." />
+  <meta name="theme-color" content="#5B5FEF" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="TPV Elite 3.0 — Punto de Venta Profesional" />
+  <meta property="og:description" content="Ventas, stock, pedidos, reportes y sincronización cloud en una sola app de escritorio para Windows." />
+  <meta property="og:url" content="https://tpvelite.surge.sh/" />
+  <meta property="og:image" content="https://tpvelite.surge.sh/social-preview.svg" />
+  <meta property="og:site_name" content="TPV Elite" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TPV Elite 3.0 — Punto de Venta Profesional" />
+  <meta name="twitter:description" content="Ventas, stock, pedidos, reportes y sincronización cloud en una sola app de escritorio para Windows." />
+  <meta name="twitter:image" content="https://tpvelite.surge.sh/social-preview.svg" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%235B5FEF'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='18' font-family='Arial,sans-serif' font-weight='bold' fill='white'>TPV</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
   <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --accent:        #6366F1;
-    --accent-dark:   #4F46E5;
-    --accent-glow:   rgba(99,102,241,.4);
-    --accent-subtle: rgba(99,102,241,.12);
-    --purple:        #8B5CF6;
-    --teal:          #14B8A6;
-    --success:       #10B981;
-    --bg:            #080C14;
-    --bg2:           #0E1521;
-    --bg3:           #141D2E;
-    --card:          #111827;
-    --card2:         #162032;
-    --border:        rgba(255,255,255,.07);
-    --border-bright: rgba(99,102,241,.35);
-    --text:          #F1F5FF;
-    --muted:         #7A8FA6;
-    --muted2:        #4A5568;
-    --ease-out:      cubic-bezier(.16,1,.3,1);
-    --ease-spring:   cubic-bezier(.34,1.56,.64,1);
-  }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg); color: var(--text);
-    line-height: 1.6; overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-  a { color: inherit; text-decoration: none; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #6366F1;
+      --accent-dark: #4F46E5;
+      --accent-glow: rgba(99,102,241,.38);
+      --accent-subtle: rgba(99,102,241,.12);
+      --purple: #8B5CF6;
+      --teal: #14B8A6;
+      --success: #10B981;
+      --warn: #F59E0B;
+      --bg: #080C14;
+      --bg2: #0E1521;
+      --bg3: #141D2E;
+      --card: #111827;
+      --card2: #162032;
+      --line: rgba(255,255,255,.07);
+      --line-bright: rgba(99,102,241,.35);
+      --text: #F1F5FF;
+      --muted: #7A8FA6;
+      --muted2: #4A5568;
+      --shadow: 0 28px 90px rgba(0,0,0,.34);
+      --ease-out: cubic-bezier(.16,1,.3,1);
+      --ease-spring: cubic-bezier(.34,1.56,.64,1);
+    }
 
-  /* ── Util ── */
-  .container { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at 80% 0%, rgba(99,102,241,.18), transparent 24%),
+        radial-gradient(circle at 0% 35%, rgba(20,184,166,.08), transparent 22%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  .tag {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: var(--accent-subtle); border: 1px solid var(--border-bright);
-    color: #a5b4fc; font-size: 12.5px; font-weight: 600; letter-spacing: .04em;
-    padding: 5px 15px; border-radius: 999px;
-  }
-  .tag-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 6px var(--accent);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .hero-title, .section-title, .metric-value, .price-amount, .nav-logo { font-family: 'Space Grotesk', 'Inter', sans-serif; }
 
-  .gradient-text {
-    background: linear-gradient(135deg,#a5b4fc 0%,#c4b5fd 50%,#818cf8 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .section-eyebrow { font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#818cf8;margin-bottom:14px; }
-  .section-title   { font-size:clamp(30px,4vw,46px);font-weight:800;letter-spacing:-.025em;line-height:1.12; }
-  .section-sub     { font-size:17px;color:var(--muted);max-width:540px;margin-top:14px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line-bright);
+      background: var(--accent-subtle);
+      color: #A5B4FC;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
 
-  /* ── Buttons ── */
-  .btn {
-    display:inline-flex;align-items:center;gap:9px;
-    padding:13px 26px;border-radius:14px;
-    font-size:15px;font-weight:700;cursor:pointer;border:none;white-space:nowrap;
-    transition:transform .2s var(--ease-spring),box-shadow .25s,background .2s;
-  }
-  .btn:hover  { transform:translateY(-2px) scale(1.02); }
-  .btn:active { transform:translateY(0) scale(.99); }
-  .btn-primary {
-    background:var(--accent);color:#fff;
-    box-shadow:0 4px 24px var(--accent-glow),0 0 0 1px rgba(99,102,241,.3);
-    position:relative;overflow:hidden;
-  }
-  .btn-primary::after {
-    content:'';position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);
-    border-radius:inherit;pointer-events:none;
-  }
-  .btn-primary:hover { background:var(--accent-dark);box-shadow:0 8px 40px var(--accent-glow); }
-  .btn-ghost { background:var(--bg3);color:var(--text);border:1px solid var(--border); }
-  .btn-ghost:hover { background:var(--card2);border-color:rgba(255,255,255,.15); }
-  .btn-lg   { padding:16px 36px;font-size:17px;border-radius:16px; }
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(99,102,241,.42);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
 
-  /* ── Nav ── */
-  nav {
-    position:fixed;top:0;left:0;right:0;z-index:200;
-    transition:background .3s,border-color .3s,box-shadow .3s;
-    border-bottom:1px solid transparent;
-  }
-  nav.scrolled {
-    background:rgba(8,12,20,.9);backdrop-filter:blur(20px) saturate(1.4);
-    border-bottom-color:var(--border);box-shadow:0 1px 40px rgba(0,0,0,.4);
-  }
-  .nav-inner { display:flex;align-items:center;justify-content:space-between;height:68px; }
-  .nav-logo  { display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.02em; }
-  .nav-logo-icon {
-    width:38px;height:38px;
-    background:linear-gradient(135deg,var(--accent),var(--purple));
-    border-radius:10px;display:grid;place-items:center;font-size:19px;
-    box-shadow:0 4px 16px var(--accent-glow);
-  }
-  .nav-links { display:flex;align-items:center;gap:36px;list-style:none; }
-  .nav-links a {
-    font-size:14px;font-weight:500;color:var(--muted);
-    transition:color .2s;position:relative;padding-bottom:2px;
-  }
-  .nav-links a::after {
-    content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;
-    background:var(--accent);transform:scaleX(0);transition:transform .25s;transform-origin:center;
-  }
-  .nav-links a:hover { color:var(--text); }
-  .nav-links a:hover::after { transform:scaleX(1); }
+    @keyframes pulse-dot {
+      0% { box-shadow: 0 0 0 0 rgba(99,102,241,.42); }
+      70% { box-shadow: 0 0 0 9px rgba(99,102,241,0); }
+      100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+    }
 
-  /* ── Hero ── */
-  .hero { min-height:100vh;display:flex;align-items:center;padding:120px 0 80px;position:relative;overflow:hidden; }
-  .hero-bg { position:absolute;inset:0;pointer-events:none;z-index:0; }
-  .hero-bg::before {
-    content:'';position:absolute;top:-30%;left:30%;
-    width:80vw;height:80vw;max-width:900px;max-height:900px;
-    background:radial-gradient(ellipse,rgba(99,102,241,.16) 0%,transparent 65%);
-    animation:mesh-drift 12s ease-in-out infinite alternate;
-  }
-  .hero-bg::after {
-    content:'';position:absolute;top:10%;left:-10%;
-    width:60vw;height:60vw;max-width:700px;max-height:700px;
-    background:radial-gradient(ellipse,rgba(139,92,246,.1) 0%,transparent 65%);
-    animation:mesh-drift 16s ease-in-out infinite alternate-reverse;
-  }
-  @keyframes mesh-drift { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,30px) scale(1.08)} }
+    .section-kicker {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #A5B4FC;
+      margin-bottom: 14px;
+    }
 
-  .hero-grid {
-    position:absolute;inset:0;pointer-events:none;
-    background-image:radial-gradient(circle,rgba(99,102,241,.12) 1px,transparent 1px);
-    background-size:44px 44px;
-    mask-image:radial-gradient(ellipse 70% 60% at 50% 40%,black,transparent);
-  }
-  .orb { position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;opacity:.18; }
-  .orb-1 { width:400px;height:400px;background:var(--accent);top:5%;right:-5%;animation:orb-float 14s ease-in-out infinite; }
-  .orb-2 { width:300px;height:300px;background:var(--purple);bottom:10%;left:-5%;animation:orb-float 18s ease-in-out infinite reverse; }
-  .orb-3 { width:200px;height:200px;background:var(--teal);top:40%;right:20%;animation:orb-float 10s ease-in-out infinite;opacity:.1; }
-  @keyframes orb-float {
-    0%,100%{transform:translate(0,0) scale(1)}
-    33%{transform:translate(30px,-20px) scale(1.05)}
-    66%{transform:translate(-20px,15px) scale(.96)}
-  }
+    .section-title {
+      font-size: clamp(34px, 4.2vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -.05em;
+      font-weight: 700;
+    }
 
-  .hero-content { position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center; }
-  .hero-left    { text-align:left; }
-  .hero-title   { font-size:clamp(38px,5vw,66px);font-weight:900;letter-spacing:-.035em;line-height:1.06;margin:18px 0 22px; }
-  .hero-sub     { font-size:clamp(15px,1.6vw,18px);color:var(--muted);max-width:480px;line-height:1.7; }
-  .hero-actions { display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:36px; }
+    .section-copy {
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 640px;
+      margin-top: 16px;
+    }
 
-  .hero-trust       { display:flex;align-items:center;gap:14px;margin-top:28px;flex-wrap:wrap; }
-  .hero-trust-item  { display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted); }
-  .icon-check {
-    width:18px;height:18px;border-radius:50%;
-    background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);
-    color:#10B981;font-size:11px;display:grid;place-items:center;
-  }
-  .hero-divider { width:1px;height:14px;background:var(--border); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 24px;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: transform .2s var(--ease-spring), box-shadow .25s, background .2s, border-color .2s;
+      cursor: pointer;
+    }
 
-  /* DL counter */
-  .dl-pill {
-    display:none;align-items:center;gap:8px;
-    margin-top:20px;
-    background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);
-    border-radius:999px;padding:6px 16px;width:fit-content;
-    font-size:13.5px;font-weight:600;color:#10B981;
-    animation:fade-in .5s var(--ease-out);
-  }
-  .dl-pill.show { display:flex; }
-  .dl-pill-num { font-size:15px;font-weight:800; }
-  .dl-pill-pulse {
-    width:7px;height:7px;border-radius:50%;background:#10B981;
-    box-shadow:0 0 0 0 rgba(16,185,129,.5);
-    animation:live-pulse 2s ease-in-out infinite;
-  }
-  @keyframes live-pulse {
-    0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}
-    70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}
-    100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
-  }
-  @keyframes fade-in { from{opacity:0} to{opacity:1} }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      box-shadow: 0 10px 34px var(--accent-glow);
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--accent-dark), #7563f0); }
+    .btn-secondary {
+      background: rgba(255,255,255,.025);
+      color: var(--text);
+      border-color: var(--line);
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.05);
+    }
 
-  .smartscreen-btn {
-    display:inline-flex;align-items:center;gap:7px;margin-top:12px;
-    padding:7px 14px;
-    background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);
-    border-radius:8px;font-size:12.5px;color:#b8952a;cursor:pointer;
-    transition:background .2s,border-color .2s;
-  }
-  .smartscreen-btn:hover { background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35); }
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 300;
+      transition: background .25s, border-color .25s, box-shadow .25s;
+      border-bottom: 1px solid transparent;
+    }
 
-  /* ── Mockup ── */
-  .hero-mockup-wrap { position:relative;z-index:1;animation:mockup-float 7s ease-in-out infinite; }
-  @keyframes mockup-float {
-    0%,100%{transform:translateY(0) rotate(-.5deg)}
-    50%{transform:translateY(-14px) rotate(.5deg)}
-  }
-  .mockup-glow {
-    position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);
-    width:70%;height:80px;background:var(--accent);
-    filter:blur(55px);opacity:.25;border-radius:50%;
-  }
-  .mockup-window {
-    background:var(--bg2);border:1px solid rgba(255,255,255,.1);
-    border-radius:18px;overflow:hidden;
-    box-shadow:0 0 0 1px rgba(255,255,255,.04),0 40px 80px rgba(0,0,0,.7),0 0 100px rgba(99,102,241,.1);
-  }
-  .mockup-titlebar {
-    background:var(--bg3);padding:11px 16px;
-    display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border);
-  }
-  .mdot { width:11px;height:11px;border-radius:50%; }
-  .mockup-body { display:grid;grid-template-columns:180px 1fr;min-height:320px; }
-  .msidebar { background:var(--bg3);border-right:1px solid var(--border);padding:16px 0; }
-  .msidebar-hdr { padding:0 14px 14px;border-bottom:1px solid var(--border);margin-bottom:10px; }
-  .msidebar-logo { display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700; }
-  .msidebar-icon { width:26px;height:26px;background:var(--accent);border-radius:6px;display:grid;place-items:center;font-size:13px; }
-  .mitem { display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:11.5px;color:var(--muted);border-radius:6px;margin:0 6px; }
-  .mitem.active { background:var(--accent-subtle);color:var(--text); }
-  .mcontent { padding:18px;background:var(--bg); }
-  .mcontent-hdr { display:flex;justify-content:space-between;align-items:center;margin-bottom:14px; }
-  .mcontent-title { font-size:14px;font-weight:700; }
-  .mbtn-sm { background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;font-size:10.5px;font-weight:700; }
-  .mstats { display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px; }
-  .mstat { background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px; }
-  .mstat-lbl { font-size:9.5px;color:var(--muted);margin-bottom:4px; }
-  .mstat-val { font-size:17px;font-weight:800; }
-  .g { color:#10B981; } .p { color:#a5b4fc; }
-  .mtable { background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden; }
-  .mrow { display:grid;grid-template-columns:2fr 1fr 1fr 70px;padding:7px 11px;font-size:10.5px;border-bottom:1px solid rgba(255,255,255,.03);align-items:center; }
-  .mrow:last-child { border-bottom:none; }
-  .mrow.hd { background:var(--bg3);color:var(--muted);font-weight:600;font-size:9.5px; }
-  .mtag { display:inline-block;padding:2px 7px;border-radius:999px;font-size:9.5px;font-weight:600; }
-  .mtag.ok   { background:rgba(16,185,129,.15);color:#10B981; }
-  .mtag.warn { background:rgba(245,158,11,.15);color:#F59E0B; }
-  .mcursor { display:inline-block;width:2px;height:1em;background:var(--accent);margin-left:2px;animation:blink .9s step-end infinite;vertical-align:middle; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    nav.scrolled {
+      background: rgba(8,12,20,.88);
+      backdrop-filter: blur(18px);
+      border-bottom-color: var(--line);
+      box-shadow: 0 10px 40px rgba(0,0,0,.22);
+    }
 
-  /* ── Biz strip ── */
-  .biz-strip { padding:24px 0 72px;overflow:hidden; }
-  .biz-strip-label { text-align:center;font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:22px; }
-  .biz-track-wrap { mask-image:linear-gradient(90deg,transparent,black 10%,black 90%,transparent);overflow:hidden; }
-  .biz-track { display:flex;width:max-content;animation:scroll-track 30s linear infinite; }
-  .biz-track:hover { animation-play-state:paused; }
-  @keyframes scroll-track { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  .biz-chip {
-    display:flex;align-items:center;gap:8px;
-    background:var(--card);border:1px solid var(--border);
-    border-radius:999px;padding:8px 18px;
-    font-size:13px;font-weight:500;color:var(--muted);
-    margin-right:12px;white-space:nowrap;
-    transition:border-color .2s,color .2s;cursor:default;
-  }
-  .biz-chip:hover { border-color:var(--accent);color:var(--text); }
+    .nav-inner {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
 
-  /* ── Features ── */
-  .features { padding:110px 0;background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%); }
-  .features-hdr { text-align:center;margin-bottom:68px; }
-  .features-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px; }
-  .feat-card {
-    background:var(--card);border:1px solid var(--border);
-    border-radius:20px;padding:30px;position:relative;overflow:hidden;
-    transition:border-color .3s,transform .3s var(--ease-out),box-shadow .3s;cursor:default;
-  }
-  .feat-card::before {
-    content:'';position:absolute;inset:0;opacity:0;
-    background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%),rgba(99,102,241,.07),transparent 40%);
-    transition:opacity .3s;border-radius:inherit;pointer-events:none;
-  }
-  .feat-card:hover { border-color:rgba(99,102,241,.35);transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.3); }
-  .feat-card:hover::before { opacity:1; }
-  .feat-icon {
-    width:52px;height:52px;background:var(--accent-subtle);
-    border:1px solid rgba(99,102,241,.2);border-radius:14px;
-    display:grid;place-items:center;font-size:24px;margin-bottom:20px;
-    transition:transform .3s var(--ease-spring),box-shadow .3s;
-  }
-  .feat-card:hover .feat-icon { transform:scale(1.1) rotate(-4deg);box-shadow:0 8px 24px rgba(99,102,241,.25); }
-  .feat-title { font-size:17px;font-weight:700;margin-bottom:9px; }
-  .feat-desc  { font-size:14px;color:var(--muted);line-height:1.7; }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      letter-spacing: -.03em;
+      font-weight: 700;
+    }
 
-  /* ── Stats ── */
-  .stats-band {
-    padding:80px 0;background:var(--bg2);
-    border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  }
-  .stats-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:40px;text-align:center; }
-  .stat-num {
-    font-size:clamp(36px,5vw,56px);font-weight:900;letter-spacing:-.04em;line-height:1;
-    background:linear-gradient(135deg,var(--text),#a5b4fc);
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  }
-  .stat-label { font-size:14px;color:var(--muted);margin-top:6px; }
+    .nav-logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      box-shadow: 0 10px 28px var(--accent-glow);
+    }
 
-  /* ── How ── */
-  .how { padding:110px 0; }
-  .how-hdr { text-align:center;margin-bottom:72px; }
-  .how-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;position:relative; }
-  .how-grid::before {
-    content:'';position:absolute;top:28px;left:80px;right:80px;height:1px;
-    background:linear-gradient(90deg,transparent,var(--accent),var(--purple),transparent);opacity:.3;
-  }
-  .how-step { text-align:center;padding:0 24px; }
-  .how-num {
-    width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--purple));
-    border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-size:20px;font-weight:900;color:#fff;margin:0 auto 22px;
-    box-shadow:0 8px 30px var(--accent-glow);position:relative;z-index:1;
-    transition:transform .3s var(--ease-spring),box-shadow .3s;
-  }
-  .how-step:hover .how-num { transform:scale(1.15);box-shadow:0 12px 40px var(--accent-glow); }
-  .how-title { font-size:16px;font-weight:700;margin-bottom:8px; }
-  .how-desc  { font-size:13.5px;color:var(--muted);line-height:1.65; }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
 
-  /* ── Pricing ── */
-  .pricing { padding:110px 0;background:var(--bg2);text-align:center; }
-  .pricing-hdr { margin-bottom:60px; }
-  .pricing-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:800px;margin:0 auto; }
-  .price-card {
-    background:var(--card);border:1px solid var(--border);
-    border-radius:28px;padding:38px 32px;text-align:left;
-    transition:border-color .3s,transform .3s var(--ease-out),box-shadow .3s;
-    position:relative;overflow:hidden;
-  }
-  .price-card:hover { transform:translateY(-4px); }
-  .price-card.featured {
-    border-color:var(--accent);
-    background:linear-gradient(160deg,rgba(99,102,241,.08) 0%,var(--card) 100%);
-    box-shadow:0 0 0 1px rgba(99,102,241,.3),0 24px 60px rgba(99,102,241,.15);
-  }
-  .price-card.featured::before {
-    content:'Mas popular';position:absolute;top:20px;right:20px;
-    background:var(--accent);color:#fff;padding:3px 11px;
-    border-radius:999px;font-size:11px;font-weight:700;
-  }
-  .price-tier { font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px; }
-  .price-tier.accent { color:#a5b4fc; }
-  .price-val { font-size:52px;font-weight:900;letter-spacing:-.04em;line-height:1;margin:6px 0 4px; }
-  .price-period { font-size:13.5px;color:var(--muted);margin-bottom:28px; }
-  .price-list { list-style:none;margin-bottom:32px; }
-  .price-list li { display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04); }
-  .price-list li:last-child { border:none; }
-  .pcheck { color:#10B981;font-size:14px;flex-shrink:0;margin-top:1px; }
-  .price-cta { display:block;text-align:center;padding:13px;border-radius:14px;font-weight:700;font-size:15px;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s; }
-  .price-cta:hover { transform:translateY(-2px); }
-  .price-cta.prim { background:var(--accent);color:#fff;box-shadow:0 4px 20px var(--accent-glow); }
-  .price-cta.prim:hover { background:var(--accent-dark);box-shadow:0 8px 32px var(--accent-glow); }
-  .price-cta.sec  { background:var(--bg3);color:var(--text); }
-  .price-cta.sec:hover { background:var(--card2); }
+    .nav-links a:hover { color: var(--text); }
 
-  /* ── CTA ── */
-  .cta-section { padding:140px 0;text-align:center;position:relative;overflow:hidden; }
-  .cta-section::before {
-    content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(99,102,241,.1) 0%,transparent 70%);
-    pointer-events:none;
-  }
-  .cta-section::after {
-    content:'';position:absolute;top:0;left:0;right:0;height:1px;
-    background:linear-gradient(90deg,transparent,var(--accent),transparent);
-  }
-  .cta-section .section-title { margin:18px 0 16px; }
-  .cta-section .section-sub   { margin:0 auto 44px;text-align:center; }
+    .hero {
+      min-height: 100vh;
+      padding: 122px 0 76px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
 
-  /* ── Footer ── */
-  footer { background:var(--bg2);border-top:1px solid var(--border);padding:44px 0; }
-  .footer-inner { display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px; }
-  .footer-copy { font-size:13px;color:var(--muted2); }
-  .footer-links { display:flex;gap:24px;list-style:none; }
-  .footer-links a { font-size:13px;color:var(--muted);transition:color .2s; }
-  .footer-links a:hover { color:var(--text); }
+    .hero::before,
+    .hero::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(74px);
+      opacity: .22;
+      pointer-events: none;
+    }
 
-  /* ── Modal ── */
-  .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(8px); }
-  .modal-overlay.open { display:flex;animation:fade-in .2s; }
-  .modal-box { background:var(--bg3);border:1px solid var(--border);border-radius:28px;max-width:540px;width:92%;padding:36px;position:relative;animation:slide-up .25s var(--ease-out); }
-  @keyframes slide-up { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-  .modal-box h3 { font-size:20px;font-weight:700;margin-bottom:8px; }
-  .modal-box > p { color:var(--muted);font-size:14px;margin-bottom:24px; }
-  .modal-close { position:absolute;top:18px;right:22px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;font-size:18px;cursor:pointer;line-height:1;display:grid;place-items:center;transition:color .2s,background .2s; }
-  .modal-close:hover { color:var(--text);background:var(--card2); }
-  .msteps-list { list-style:none;display:flex;flex-direction:column;gap:12px; }
-  .msteps-list li { display:flex;gap:14px;align-items:flex-start;background:var(--card2);border-radius:14px;padding:14px 16px; }
-  .mstep-n { min-width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0; }
-  .mstep-t { font-size:13.5px;line-height:1.55;color:var(--muted); }
-  .mstep-t strong { color:var(--text); }
-  .badge-btn { display:inline-block;background:var(--accent);color:#fff;border-radius:5px;padding:1px 8px;font-size:11.5px;font-weight:600; }
+    .hero::before {
+      width: 420px;
+      height: 420px;
+      top: 8%;
+      right: -8%;
+      background: rgba(99,102,241,.34);
+    }
 
-  /* ── Reveal animations ── */
-  .reveal { opacity:0;transform:translateY(32px);transition:opacity .65s var(--ease-out),transform .65s var(--ease-out); }
-  .reveal.visible { opacity:1;transform:translateY(0); }
-  .reveal-scale { opacity:0;transform:scale(.96);transition:opacity .6s var(--ease-out),transform .6s var(--ease-spring); }
-  .reveal-scale.visible { opacity:1;transform:scale(1); }
+    .hero::after {
+      width: 320px;
+      height: 320px;
+      left: -7%;
+      bottom: 8%;
+      background: rgba(20,184,166,.16);
+    }
 
-  /* ── Responsive ── */
-  @media (max-width:900px) {
-    .hero-content { grid-template-columns:1fr;text-align:center;gap:48px; }
-    .hero-left { display:flex;flex-direction:column;align-items:center; }
-    .hero-sub { margin:0 auto; }
-    .hero-actions { justify-content:center; }
-    .hero-trust  { justify-content:center; }
-    .dl-pill     { margin:20px auto 0; }
-    .hero-mockup-wrap { max-width:480px;margin:0 auto; }
-    .how-grid::before { display:none; }
-    .how-grid { gap:40px; }
-  }
-  @media (max-width:640px) {
-    .nav-links { display:none; }
-    .mockup-body { grid-template-columns:1fr; }
-    .msidebar { display:none; }
-    .footer-inner { flex-direction:column;text-align:center; }
-    .mstats { grid-template-columns:1fr 1fr; }
-  }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 56px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-title {
+      font-size: clamp(42px, 5.8vw, 76px);
+      line-height: .98;
+      letter-spacing: -.06em;
+      font-weight: 700;
+      margin: 22px 0 18px;
+    }
+
+    .hero-gradient {
+      background: linear-gradient(135deg, #A5B4FC 0%, #C4B5FD 44%, #67E8F9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-copy {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 640px;
+    }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .hero-trust { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 26px; color: var(--muted); font-size: 14px; font-weight: 600; }
+    .hero-trust span::before { content: '•'; color: var(--success); margin-right: 8px; }
+
+    .hero-highlights {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .highlight-card,
+    .feature-card,
+    .step-card,
+    .release-card,
+    .price-card,
+    .capture-note,
+    .capture-frame,
+    .capture-side-card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      box-shadow: var(--shadow);
+    }
+
+    .highlight-card {
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .highlight-card strong,
+    .feature-card h3,
+    .step-card h3,
+    .release-card strong,
+    .capture-note strong,
+    .capture-side-card strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .highlight-card small,
+    .feature-card p,
+    .step-card p,
+    .release-card span,
+    .capture-note p,
+    .capture-side-card p,
+    .price-list li {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .highlight-kicker,
+    .capture-label,
+    .capture-side-label {
+      display: inline-block;
+      margin-bottom: 8px;
+      color: #A5B4FC;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .hero-capture {
+      position: relative;
+      min-height: 700px;
+      padding-bottom: 18px;
+    }
+
+    .capture-frame {
+      position: relative;
+      overflow: hidden;
+      border-radius: 34px;
+      background: linear-gradient(180deg, rgba(14,21,33,.96), rgba(8,12,20,.98));
+      border: 1px solid rgba(255,255,255,.1);
+      box-shadow: 0 42px 110px rgba(0,0,0,.44);
+    }
+
+    .capture-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .capture-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .capture-body { display: grid; grid-template-columns: 178px 1fr; min-height: 482px; }
+    .capture-sidebar {
+      padding: 18px 14px;
+      border-right: 1px solid var(--line);
+      background: rgba(0,0,0,.16);
+    }
+
+    .capture-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px 16px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .capture-brand-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+    }
+
+    .capture-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .capture-menu-item.active {
+      color: var(--text);
+      background: rgba(99,102,241,.12);
+      border: 1px solid rgba(99,102,241,.18);
+    }
+
+    .capture-main { padding: 22px; }
+    .capture-main-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .capture-main-head h3 { font-size: 18px; font-weight: 700; }
+    .capture-pill-action {
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .capture-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .capture-metric {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+    }
+    .capture-metric-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .metric-value { font-size: 28px; line-height: 1; letter-spacing: -.05em; font-weight: 700; }
+
+    .capture-table {
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+    }
+
+    .capture-row {
+      display: grid;
+      grid-template-columns: 2fr 1.1fr .9fr .9fr;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      font-size: 13px;
+      align-items: center;
+    }
+
+    .capture-row:last-child { border-bottom: 0; }
+    .capture-row.head {
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .stock-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 66px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .stock-badge.ok { color: #7bf7c1; background: rgba(16,185,129,.14); }
+    .stock-badge.warn { color: #ffd38c; background: rgba(245,158,11,.16); }
+
+    .capture-side-card {
+      position: absolute;
+      width: 230px;
+      border-radius: 24px;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+      z-index: 2;
+    }
+
+    .capture-side-card.top { top: 34px; right: -10px; }
+    .capture-side-card.bottom { bottom: 34px; left: -6px; }
+
+    .capture-side-card.top::after {
+      content: '';
+      position: absolute;
+      top: 44px;
+      right: 22px;
+      width: 96px;
+      height: 22px;
+      background: radial-gradient(circle, rgba(99,102,241,.46), transparent 68%);
+      filter: blur(16px);
+      opacity: .8;
+      pointer-events: none;
+    }
+
+    .capture-note {
+      margin-top: 18px;
+      border-radius: 22px;
+      padding: 18px 20px;
+      position: relative;
+      z-index: 1;
+      clear: both;
+    }
+
+    .download-pill {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      margin-top: 20px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(16,185,129,.12);
+      border: 1px solid rgba(16,185,129,.18);
+      color: #7BF7C1;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .download-pill.show { display: inline-flex; }
+    .download-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(16,185,129,.4);
+      animation: pulse-green 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-green {
+      0% { box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+      70% { box-shadow: 0 0 0 9px rgba(16,185,129,0); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+    }
+
+    .utility-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(245,158,11,.18);
+      background: rgba(245,158,11,.08);
+      color: #f4c783;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .business-strip { padding: 22px 0 84px; overflow: hidden; }
+    .business-label { text-align: center; color: var(--muted2); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 24px; }
+    .business-mask { overflow: hidden; mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent); }
+    .business-track { display: flex; width: max-content; animation: marquee 30s linear infinite; }
+    .business-chip { display: flex; align-items: center; gap: 10px; margin-right: 12px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.025); color: var(--muted); font-size: 14px; white-space: nowrap; }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    .release, .features, .steps, .pricing, .cta { padding: 110px 0; }
+    .release-panel {
+      display: grid;
+      grid-template-columns: 1.06fr .94fr;
+      gap: 24px;
+      padding: 36px;
+      border-radius: 32px;
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(17,24,39,.95), rgba(14,21,33,.95));
+      box-shadow: var(--shadow);
+    }
+
+    .release-grid, .features-grid, .steps-grid, .pricing-grid { display: grid; gap: 18px; }
+    .release-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .release-card, .feature-card, .step-card, .price-card { border-radius: 22px; padding: 22px; }
+
+    .features {
+      background: linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.02));
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head.center { text-align: center; margin-bottom: 54px; }
+    .section-head.center .section-copy { margin-inline: auto; }
+    .features-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .feature-icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      background: rgba(99,102,241,.12);
+      border: 1px solid rgba(99,102,241,.18);
+      font-size: 24px;
+    }
+
+    .metrics-band {
+      padding: 76px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.015);
+    }
+
+    .metrics-band-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; }
+    .metrics-band-item { text-align: center; }
+    .metrics-band-item .metric-value {
+      font-size: clamp(34px, 4vw, 58px);
+      background: linear-gradient(135deg, var(--text), #A5B4FC);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .metrics-band-item p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+    .steps-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .step-number {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      box-shadow: 0 12px 30px var(--accent-glow);
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    .pricing { background: linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.03)); }
+    .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 900px; margin: 0 auto; }
+    .price-card.featured {
+      border-color: var(--line-bright);
+      background: linear-gradient(160deg, rgba(99,102,241,.12), rgba(17,24,39,.96));
+      position: relative;
+    }
+    .price-card.featured::before {
+      content: 'Más elegido';
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .price-tier { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 700; margin-bottom: 12px; }
+    .price-amount { font-size: 52px; line-height: 1; letter-spacing: -.06em; font-weight: 700; margin-bottom: 10px; }
+    .price-period { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+    .price-list { list-style: none; margin-bottom: 24px; }
+    .price-list li { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .price-list li:last-child { border-bottom: 0; }
+    .check { color: #7ef3c0; font-weight: 700; }
+
+    .cta { position: relative; text-align: center; }
+    .cta::before {
+      content: '';
+      position: absolute;
+      inset: 20% 18% auto;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,.16), transparent 65%);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+    .cta .section-copy { margin-inline: auto; text-align: center; }
+    .cta-actions { margin-top: 38px; display: flex; justify-content: center; }
+    .support-note { margin-top: 18px; color: var(--muted); font-size: 14px; }
+
+    footer { padding: 34px 0 42px; border-top: 1px solid var(--line); background: rgba(0,0,0,.12); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+    .footer-links { list-style: none; display: flex; gap: 22px; color: var(--muted); font-size: 14px; }
+    .footer-copy { color: var(--muted2); font-size: 13px; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      width: min(560px, 100%);
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--bg3), var(--bg2));
+      padding: 30px;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-box h3 { font-size: 22px; margin-bottom: 10px; }
+    .modal-box > p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .steps-list { list-style: none; display: grid; gap: 12px; }
+    .steps-list li { display: flex; gap: 14px; padding: 14px; border-radius: 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.04); }
+    .steps-list strong { display: block; margin-bottom: 4px; }
+    .step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .reveal,
+    .reveal-scale {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .65s var(--ease-out), transform .65s var(--ease-out);
+    }
+
+    .reveal-scale { transform: scale(.96); }
+    .visible { opacity: 1; transform: none; }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .release-panel,
+      .features-grid,
+      .steps-grid,
+      .pricing-grid,
+      .metrics-band-grid { grid-template-columns: 1fr 1fr; }
+
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-capture { min-height: auto; padding-bottom: 0; }
+      .capture-side-card.top,
+      .capture-side-card.bottom {
+        position: relative;
+        inset: auto;
+        width: auto;
+        margin-top: 16px;
+      }
+      .capture-note { margin-top: 16px; }
+    }
+
+    @media (max-width: 760px) {
+      .nav-links { display: none; }
+      .hero-highlights,
+      .release-grid,
+      .features-grid,
+      .steps-grid,
+      .pricing-grid,
+      .metrics-band-grid,
+      .capture-metrics { grid-template-columns: 1fr; }
+      .capture-body { grid-template-columns: 1fr; }
+      .capture-sidebar { display: none; }
+      .capture-row { grid-template-columns: 1.7fr 1fr .9fr; }
+      .release, .features, .steps, .pricing, .cta { padding: 88px 0; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .capture-side-card { width: auto; }
+    }
   </style>
 </head>
 <body>
-
-<nav id="main-nav">
-  <div class="container nav-inner">
-    <div class="nav-logo">
-      <div class="nav-logo-icon">&#127978;</div>
-      TPV Elite
+  <nav id="main-nav">
+    <div class="container nav-inner">
+      <div class="nav-logo">
+        <div class="nav-logo-mark">🏪</div>
+        TPV Elite
+      </div>
+      <ul class="nav-links">
+        <li><a href="#novedades">Novedades</a></li>
+        <li><a href="#captura">Captura</a></li>
+        <li><a href="#funcionalidades">Funcionalidades</a></li>
+        <li><a href="#precios">Planes</a></li>
+      </ul>
+      <a href="./TPVElite_Setup.exe" download class="btn btn-primary" onclick="trackDownload()">⬇ Descargar</a>
     </div>
-    <ul class="nav-links">
-      <li><a href="#funcionalidades">Funcionalidades</a></li>
-      <li><a href="#como-funciona">Como funciona</a></li>
-      <li><a href="#precios">Precios</a></li>
-    </ul>
-    <a href="./TPVElite_Setup.exe" download class="btn btn-primary"
-       style="padding:10px 22px;font-size:14px" onclick="trackDownload()">
-      &#11015; Descargar gratis
-    </a>
-  </div>
-</nav>
+  </nav>
 
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-grid"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="container hero-content">
-    <div class="hero-left">
-      <div class="tag"><span class="tag-dot"></span> Version 2.0 &mdash; Windows 10/11</div>
-      <h1 class="hero-title">El TPV que tu negocio<br/><span class="gradient-text">merecia desde siempre</span></h1>
-      <p class="hero-sub">Gestiona ventas, stock, pedidos y reportes en una sola app. Sin internet, sin mensualidades, sin complicaciones. Se instala en minutos.</p>
-      <div class="hero-actions">
-        <a href="./TPVElite_Setup.exe" download class="btn btn-primary btn-lg" onclick="trackDownload()">&#11015;&nbsp; Descargar gratis</a>
-        <a href="#funcionalidades" class="btn btn-ghost btn-lg">Ver funcionalidades</a>
-      </div>
-      <div class="hero-trust">
-        <div class="hero-trust-item"><div class="icon-check">&#10003;</div> Sin suscripcion</div>
-        <div class="hero-divider"></div>
-        <div class="hero-trust-item"><div class="icon-check">&#10003;</div> Sin internet</div>
-        <div class="hero-divider"></div>
-        <div class="hero-trust-item"><div class="icon-check">&#10003;</div> Windows 10/11</div>
-      </div>
-      <div class="dl-pill" id="dl-pill">
-        <div class="dl-pill-pulse"></div>
-        <span class="dl-pill-num" id="dl-num">0</span>
-        descargas y contando
-      </div>
-      <span class="smartscreen-btn" onclick="document.getElementById('smartscreen-modal').classList.add('open')">
-        &#9888;&#65039; Windows bloqueo el instalador? &mdash; Como resolverlo en 30 segundos
-      </span>
-    </div>
-    <div class="hero-mockup-wrap">
-      <div class="mockup-glow"></div>
-      <div class="mockup-window">
-        <div class="mockup-titlebar">
-          <div class="mdot" style="background:#FF5F57"></div>
-          <div class="mdot" style="background:#FEBC2E"></div>
-          <div class="mdot" style="background:#28C840"></div>
-          <span style="font-size:11.5px;color:var(--muted);margin-left:10px">&#127978; Mi Negocio &mdash; Dashboard</span>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="pill"><span class="pill-dot"></span> Versión 3.0 publicada</div>
+          <h1 class="hero-title">El punto de venta que ordena tu operación <span class="hero-gradient">sin frenar la caja</span></h1>
+          <p class="hero-copy">TPV Elite 3.0 centraliza ventas, stock, pedidos y reportes en una sola app de escritorio para Windows, pensada para vender más rápido y ordenar mejor la operación.</p>
+          <div class="hero-actions">
+            <a href="./TPVElite_Setup.exe" download class="btn btn-primary" onclick="trackDownload()">⬇ Descargar gratis</a>
+            <a href="#captura" class="btn btn-secondary">Ver captura mejorada</a>
+          </div>
+          <div class="hero-trust">
+            <span>Funciona offline</span>
+            <span>Sin mensualidad obligatoria</span>
+            <span>Arranque rápido</span>
+            <span>Windows 10 y 11</span>
+          </div>
+          <div class="hero-highlights">
+            <article class="highlight-card">
+              <span class="highlight-kicker">Instalación</span>
+              <strong>1 solo EXE listo para usar</strong>
+              <small>Descarga y empieza sin pasos extra. Todo lo necesario para operar desde el primer día.</small>
+            </article>
+            <article class="highlight-card">
+              <span class="highlight-kicker">Operación</span>
+              <strong>Venta, stock y pedidos</strong>
+              <small>Todo en el mismo lugar para cobrar rápido, controlar inventario y seguir los pedidos.</small>
+            </article>
+            <article class="highlight-card">
+              <span class="highlight-kicker">Datos</span>
+              <strong>Tu información queda ordenada</strong>
+              <small>Consulta ventas, productos y movimientos con una vista clara y simple para el negocio.</small>
+            </article>
+          </div>
         </div>
-        <div class="mockup-body">
-          <div class="msidebar">
-            <div class="msidebar-hdr">
-              <div class="msidebar-logo">
-                <div class="msidebar-icon">&#127978;</div>
-                <span>Mi Negocio<span class="mcursor"></span></span>
+
+        <div class="hero-capture reveal-scale" id="captura">
+          <div class="capture-frame">
+            <div class="capture-topbar">
+              <span class="capture-dot" style="background:#FF5F57"></span>
+              <span class="capture-dot" style="background:#FEBC2E"></span>
+              <span class="capture-dot" style="background:#28C840"></span>
+              <span style="margin-left:10px">TPV Elite 3.0 · Dashboard operativo</span>
+            </div>
+            <div class="capture-body">
+              <aside class="capture-sidebar">
+                <div class="capture-brand">
+                  <div class="capture-brand-mark">🏪</div>
+                  Mi Negocio
+                </div>
+                <div class="capture-menu-item active">📊 Dashboard</div>
+                <div class="capture-menu-item">🛒 Nueva venta</div>
+                <div class="capture-menu-item">📦 Productos</div>
+                <div class="capture-menu-item">📋 Pedidos</div>
+                <div class="capture-menu-item">📈 Reportes</div>
+                <div class="capture-menu-item">⚙ Configuración</div>
+              </aside>
+              <div class="capture-main">
+                <div class="capture-main-head">
+                  <h3>Resumen del día</h3>
+                  <span class="capture-pill-action">+ Nueva venta</span>
+                </div>
+                <div class="capture-metrics">
+                  <article class="capture-metric"><div class="capture-metric-label">Ventas hoy</div><div class="metric-value" id="mock-sales">$0</div></article>
+                  <article class="capture-metric"><div class="capture-metric-label">Transacciones</div><div class="metric-value" id="mock-tx">0</div></article>
+                  <article class="capture-metric"><div class="capture-metric-label">Productos</div><div class="metric-value" id="mock-prods">0</div></article>
+                </div>
+                <div class="capture-table">
+                  <div class="capture-row head"><span>Producto</span><span>Categoría</span><span>Precio</span><span>Stock</span></div>
+                  <div class="capture-row"><span>Vainilla 1L</span><span>Helados</span><span>$1.200</span><span><span class="stock-badge ok">OK</span></span></div>
+                  <div class="capture-row"><span>Frutilla 500g</span><span>Helados</span><span>$850</span><span><span class="stock-badge ok">OK</span></span></div>
+                  <div class="capture-row"><span>Cono grande</span><span>Extras</span><span>$320</span><span><span class="stock-badge warn">Bajo</span></span></div>
+                </div>
               </div>
             </div>
-            <div class="mitem active"><span>&#128202;</span> Dashboard</div>
-            <div class="mitem"><span>&#128722;</span> Nueva Venta</div>
-            <div class="mitem"><span>&#128230;</span> Productos</div>
-            <div class="mitem"><span>&#128203;</span> Pedidos</div>
-            <div class="mitem"><span>&#128200;</span> Reportes</div>
-            <div class="mitem"><span>&#9881;</span> Config</div>
           </div>
-          <div class="mcontent">
-            <div class="mcontent-hdr">
-              <div class="mcontent-title">Resumen del dia</div>
-              <div class="mbtn-sm">+ Nueva venta</div>
-            </div>
-            <div class="mstats">
-              <div class="mstat"><div class="mstat-lbl">Ventas hoy</div><div class="mstat-val g" id="mock-sales">$0</div></div>
-              <div class="mstat"><div class="mstat-lbl">Transacciones</div><div class="mstat-val p" id="mock-tx">0</div></div>
-              <div class="mstat"><div class="mstat-lbl">Productos</div><div class="mstat-val" id="mock-prods">0</div></div>
-            </div>
-            <div class="mtable">
-              <div class="mrow hd"><span>Producto</span><span>Categoria</span><span>Precio</span><span>Stock</span></div>
-              <div class="mrow"><span>Vainilla 1L</span><span>Helados</span><span>$1.200</span><span><div class="mtag ok">OK</div></span></div>
-              <div class="mrow"><span>Frutilla 500g</span><span>Helados</span><span>$850</span><span><div class="mtag ok">OK</div></span></div>
-              <div class="mrow"><span>Cono Grande</span><span>Extras</span><span>$320</span><span><div class="mtag warn">Bajo</div></span></div>
-            </div>
+          <div class="capture-side-card top">
+            <span class="capture-side-label">Beneficio</span>
+            <strong>Más control en caja</strong>
+            <p>Ves ventas, productos y stock en un solo lugar para decidir más rápido y vender mejor.</p>
+          </div>
+          <div class="capture-side-card bottom">
+            <span class="capture-side-label">Resultado</span>
+            <strong>Menos fricción</strong>
+            <p>La interfaz está pensada para que el equipo encuentre lo que necesita sin perder tiempo.</p>
+          </div>
+          <div class="capture-note">
+            <span class="capture-label">Vista principal</span>
+            <strong>La pantalla principal que ve el cliente</strong>
+            <p>Un dashboard claro con métricas, productos y estados visibles para dar confianza y acelerar la operación diaria.</p>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<div class="biz-strip">
-  <div class="container"><p class="biz-strip-label">Adaptado para cualquier tipo de negocio</p></div>
-  <div class="biz-track-wrap"><div class="biz-track" id="biz-track"></div></div>
-</div>
+    <section class="business-strip">
+      <div class="container"><div class="business-label">Adaptado para distintos rubros</div></div>
+      <div class="business-mask"><div class="business-track" id="biz-track"></div></div>
+    </section>
 
-<section class="features" id="funcionalidades">
-  <div class="container">
-    <div class="features-hdr">
-      <div class="section-eyebrow">Funcionalidades</div>
-      <h2 class="section-title">Todo lo que necesitas,<br/>nada de lo que no</h2>
-      <p class="section-sub" style="margin:14px auto 0;text-align:center">Disenado para ser simple desde el primer dia, pero potente cuando lo necesitas.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feat-card reveal"><div class="feat-icon">&#128722;</div><div class="feat-title">Punto de Venta</div><p class="feat-desc">Registra ventas en segundos con busqueda por nombre o codigo. Carrito, descuentos y calculo automatico de vuelto.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon">&#128230;</div><div class="feat-title">Control de stock</div><p class="feat-desc">Alertas automaticas por stock bajo. Categorias, variantes y estado activo/inactivo para cada producto.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon">&#128200;</div><div class="feat-title">Reportes y estadisticas</div><p class="feat-desc">Resumenes diarios, semanales y mensuales. Exporta a PDF con un clic y visualiza tendencias.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon">&#128101;</div><div class="feat-title">Multiples usuarios</div><p class="feat-desc">Roles y permisos por empleado. Auditoria completa de quien hace cada accion. Inicio de sesion seguro.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon">&#128203;</div><div class="feat-title">Gestion de pedidos</div><p class="feat-desc">Abri pedidos por mesa o numero. Seguimiento en tiempo real: pendiente, en preparacion, entregado.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon">&#127912;</div><div class="feat-title">Personalizacion total</div><p class="feat-desc">Nombre, tipo de negocio y emoji propios. Tema oscuro. Datos del negocio en todos los comprobantes.</p></div>
-    </div>
-  </div>
-</section>
-
-<div class="stats-band">
-  <div class="container">
-    <div class="stats-grid">
-      <div class="stat-item reveal"><div class="stat-num" data-target="100">0</div><div class="stat-label">% sin conexion a internet</div></div>
-      <div class="stat-item reveal"><div class="stat-num" data-prefix="$" data-target="0">$0</div><div class="stat-label">Costo de suscripcion mensual</div></div>
-      <div class="stat-item reveal"><div class="stat-num" data-target="2">0</div><div class="stat-label">Minutos para empezar a vender</div></div>
-      <div class="stat-item reveal"><div class="stat-num" data-target="10" data-suffix="+">0</div><div class="stat-label">Tipos de negocio soportados</div></div>
-    </div>
-  </div>
-</div>
-
-<section class="how" id="como-funciona">
-  <div class="container">
-    <div class="how-hdr">
-      <div class="section-eyebrow">Como funciona</div>
-      <h2 class="section-title">Empieza en minutos</h2>
-      <p class="section-sub" style="margin:14px auto 0;text-align:center">Sin tecnicos, sin servidores, sin complicaciones.</p>
-    </div>
-    <div class="how-grid">
-      <div class="how-step reveal"><div class="how-num">1</div><div class="how-title">Descarga el instalador</div><p class="how-desc">Un solo archivo .exe de ~40 MB. Sin requisitos previos. Funciona en cualquier Windows 10 u 11.</p></div>
-      <div class="how-step reveal"><div class="how-num">2</div><div class="how-title">Ejecuta el wizard</div><p class="how-desc">El asistente te guia paso a paso: licencia, directorio de instalacion y opciones. Tarda 1 minuto.</p></div>
-      <div class="how-step reveal"><div class="how-num">3</div><div class="how-title">Configura tu negocio</div><p class="how-desc">La primera vez te pide nombre, tipo de negocio y un usuario admin. Sin formularios complicados.</p></div>
-      <div class="how-step reveal"><div class="how-num">4</div><div class="how-title">A vender!</div><p class="how-desc">Carga tus productos y empieza a gestionar tu negocio desde el primer dia. Sin curva de aprendizaje.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="pricing" id="precios">
-  <div class="container">
-    <div class="pricing-hdr">
-      <div class="section-eyebrow">Precios</div>
-      <h2 class="section-title">Simple y transparente</h2>
-      <p class="section-sub" style="margin:14px auto 0;text-align:center">Un solo pago, tuyo para siempre. Sin sorpresas ni renovaciones.</p>
-    </div>
-    <div class="pricing-grid">
-      <div class="price-card reveal-scale">
-        <div class="price-tier">Basico</div>
-        <div class="price-val">Gratis</div>
-        <div class="price-period">Para siempre &middot; sin tarjeta</div>
-        <ul class="price-list">
-          <li><span class="pcheck">&#10003;</span> Ventas ilimitadas</li>
-          <li><span class="pcheck">&#10003;</span> Hasta 100 productos</li>
-          <li><span class="pcheck">&#10003;</span> 1 usuario</li>
-          <li><span class="pcheck">&#10003;</span> Reportes basicos</li>
-          <li><span class="pcheck">&#10003;</span> Funciona sin internet</li>
-        </ul>
-        <a href="./TPVElite_Setup.exe" download class="price-cta sec" onclick="trackDownload()">Descargar gratis</a>
+    <section class="release" id="novedades">
+      <div class="container">
+        <div class="release-panel reveal-scale">
+          <div>
+            <div class="section-kicker">Lo que resuelve</div>
+            <h2 class="section-title">Información que le importa al cliente, no al técnico</h2>
+            <p class="section-copy">La landing ahora comunica qué gana el negocio: vender más rápido, controlar mejor el stock, ordenar pedidos y tener reportes claros para decidir.</p>
+          </div>
+          <div class="release-grid">
+            <article class="release-card"><strong>Más ventas sin fricción</strong><span>Cobrá más rápido, con menos clics y menos errores en el mostrador.</span></article>
+            <article class="release-card"><strong>Stock bajo control</strong><span>Vé qué falta, qué rota más y qué conviene reponer antes de quedarte sin producto.</span></article>
+            <article class="release-card"><strong>Pedidos más claros</strong><span>Seguimiento simple para trabajar mejor en mostrador, cocina o despacho.</span></article>
+            <article class="release-card"><strong>Reportes que sirven</strong><span>Ventas, productos y tendencias en un formato que ayuda a decidir, no solo a mirar números.</span></article>
+          </div>
+        </div>
       </div>
-      <div class="price-card featured reveal-scale">
-        <div class="price-tier accent">Pro</div>
-        <div class="price-val" style="background:linear-gradient(135deg,#a5b4fc,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">$15<span style="font-size:22px;font-weight:500;-webkit-text-fill-color:var(--muted)"> USD</span></div>
-        <div class="price-period">Pago unico &middot; licencia de por vida</div>
-        <ul class="price-list">
-          <li><span class="pcheck">&#10003;</span> Todo lo de Basico</li>
-          <li><span class="pcheck">&#10003;</span> Productos ilimitados</li>
-          <li><span class="pcheck">&#10003;</span> Usuarios ilimitados</li>
-          <li><span class="pcheck">&#10003;</span> Reportes avanzados + PDF</li>
-          <li><span class="pcheck">&#10003;</span> Gestion de pedidos</li>
-          <li><span class="pcheck">&#10003;</span> Actualizaciones gratuitas</li>
-          <li><span class="pcheck">&#10003;</span> Soporte prioritario</li>
-        </ul>
-        <a href="#contacto" class="price-cta prim">Comprar ahora</a>
+    </section>
+
+    <section class="features" id="funcionalidades">
+      <div class="container">
+        <div class="section-head center">
+          <div class="section-kicker">Funcionalidades</div>
+          <h2 class="section-title">Lo que necesitas para vender y controlar mejor</h2>
+          <p class="section-copy">TPV Elite 3.0 está pensado para operar rápido en caja, ordenar stock, seguir pedidos y leer métricas sin depender de planillas o software viejo.</p>
+        </div>
+        <div class="features-grid">
+          <article class="feature-card reveal"><div class="feature-icon">🛒</div><h3>Venta rápida en mostrador</h3><p>Busca por nombre o código, aplica descuentos, calcula vuelto y procesa tickets sin pantallas innecesarias.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">📦</div><h3>Stock con criterio</h3><p>Controla productos, costos, categorías y alertas para detectar faltantes antes de que afecten la venta.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">📈</div><h3>Dashboard y reportes</h3><p>Consulta métricas diarias, tendencias y exportaciones en PDF o Excel con mejor contexto visual.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">👥</div><h3>Usuarios y permisos</h3><p>Define perfiles por rol y mantiene trazabilidad sobre quién vende, ajusta o administra información.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">📋</div><h3>Pedidos en tiempo real</h3><p>Abre pedidos por mesa o número y sigue cada estado hasta la entrega sin perder el hilo operativo.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">⚡</div><h3>Arranque simple</h3><p>Instala y empieza a usarlo sin procesos largos ni configuraciones confusas para el equipo.</p></article>
+        </div>
       </div>
+    </section>
+
+    <section class="metrics-band">
+      <div class="container metrics-band-grid">
+        <article class="metrics-band-item reveal"><div class="metric-value" data-target="100">0</div><p>% operativo sin internet</p></article>
+        <article class="metrics-band-item reveal"><div class="metric-value" data-prefix="$" data-target="0">$0</div><p>suscripción mensual obligatoria</p></article>
+        <article class="metrics-band-item reveal"><div class="metric-value" data-target="4">0</div><p>frentes cubiertos: venta, stock, pedidos y reportes</p></article>
+        <article class="metrics-band-item reveal"><div class="metric-value" data-target="15" data-suffix="+">0</div><p>rubros contemplados en la propuesta</p></article>
+      </div>
+    </section>
+
+    <section class="steps" id="como-funciona">
+      <div class="container">
+        <div class="section-head center">
+          <div class="section-kicker">Cómo funciona</div>
+          <h2 class="section-title">Descarga, instala y empieza a cobrar</h2>
+          <p class="section-copy">Sin depender de un técnico para arrancar. El flujo está pensado para que el negocio pueda empezar o restaurar su operación con el menor roce posible.</p>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card reveal"><div class="step-number">1</div><h3>Descarga el instalador actual</h3><p>Un solo EXE con la versión 3.0 y sus dependencias integradas para Windows 10 y 11.</p></article>
+          <article class="step-card reveal"><div class="step-number">2</div><h3>Ejecuta el asistente</h3><p>El wizard instala la app, crea accesos directos y deja la estructura preparada para empezar a usarla.</p></article>
+          <article class="step-card reveal"><div class="step-number">3</div><h3>Configura o recupera datos</h3><p>Define el negocio, el usuario administrador y, si aplica, sincroniza la base cloud para restaurar información.</p></article>
+          <article class="step-card reveal"><div class="step-number">4</div><h3>Opera desde el primer día</h3><p>Vende, controla stock, gestiona pedidos y genera reportes sin curva de aprendizaje artificial.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing" id="precios">
+      <div class="container">
+        <div class="section-head center">
+          <div class="section-kicker">Planes</div>
+          <h2 class="section-title">Una estructura simple para empezar y escalar</h2>
+          <p class="section-copy">Opciones claras para arrancar gratis y escalar cuando el negocio necesita más capacidad y soporte.</p>
+        </div>
+        <div class="pricing-grid">
+          <article class="price-card reveal-scale">
+            <div class="price-tier">Starter</div>
+            <div class="price-amount">Gratis</div>
+            <div class="price-period">Para empezar hoy · sin tarjeta</div>
+            <ul class="price-list">
+              <li><span class="check">✓</span><span>Ventas ilimitadas</span></li>
+              <li><span class="check">✓</span><span>Hasta 100 productos</span></li>
+              <li><span class="check">✓</span><span>1 usuario</span></li>
+              <li><span class="check">✓</span><span>Reportes básicos</span></li>
+              <li><span class="check">✓</span><span>Operación offline</span></li>
+            </ul>
+            <a href="./TPVElite_Setup.exe" download class="btn btn-secondary" onclick="trackDownload()">Descargar gratis</a>
+          </article>
+
+          <article class="price-card featured reveal-scale">
+            <div class="price-tier">Elite Pro</div>
+            <div class="price-amount">$15 <span style="font-size:22px;color:var(--muted)">USD</span></div>
+            <div class="price-period">Pago único · licencia de por vida</div>
+            <ul class="price-list">
+              <li><span class="check">✓</span><span>Todo lo de Starter</span></li>
+              <li><span class="check">✓</span><span>Productos ilimitados</span></li>
+              <li><span class="check">✓</span><span>Usuarios ilimitados</span></li>
+              <li><span class="check">✓</span><span>Reportes avanzados y PDF</span></li>
+              <li><span class="check">✓</span><span>Gestión de pedidos</span></li>
+              <li><span class="check">✓</span><span>Actualizaciones gratuitas</span></li>
+              <li><span class="check">✓</span><span>Soporte prioritario</span></li>
+            </ul>
+            <a href="#contacto" class="btn btn-primary">Quiero la versión completa</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="contacto">
+      <div class="container">
+        <div class="pill" style="justify-content:center;"><span class="pill-dot"></span> Descarga la versión actual</div>
+        <h2 class="section-title" style="margin-top:20px;">Tu negocio merece una herramienta que se sienta seria desde el primer clic</h2>
+        <p class="section-copy">Descarga TPV Elite 3.0 y centraliza ventas, stock, pedidos y reportes en un único flujo de trabajo pensado para el negocio.</p>
+        <div class="cta-actions">
+          <a href="./TPVElite_Setup.exe" download class="btn btn-primary" onclick="trackDownload()">⬇ Descargar TPV Elite 3.0</a>
+        </div>
+        <p class="support-note">Preguntas o demo comercial: <a href="mailto:jesusjcopes@gmail.com" style="color:#A5B4FC;font-weight:700;">jesusjcopes@gmail.com</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div class="nav-logo"><div class="nav-logo-mark" style="width:34px;height:34px;font-size:17px;">🏪</div>TPV Elite</div>
+      <div class="footer-copy">© 2026 TPV Elite. Landing actualizada para la versión 3.0.</div>
+      <ul class="footer-links">
+        <li><a href="#novedades">Novedades</a></li>
+        <li><a href="#captura">Captura</a></li>
+        <li><a href="#precios">Planes</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
     </div>
-  </div>
-</section>
+  </footer>
 
-<section class="cta-section" id="contacto">
-  <div class="container">
-    <div class="tag" style="margin:0 auto">&#128640; Empieza hoy, gratis</div>
-    <h2 class="section-title reveal" style="margin:20px 0 16px">Tu negocio merece<br/>una herramienta profesional</h2>
-    <p class="section-sub reveal" style="text-align:center">Descarga TPV Elite y empieza a gestionar tu negocio como un profesional. Sin tarjeta de credito. Sin mensualidades.</p>
-    <div style="margin-top:40px">
-      <a href="./TPVElite_Setup.exe" download class="btn btn-primary btn-lg reveal" onclick="trackDownload()">&#11015;&nbsp; Descargar TPV Elite &mdash; Gratis</a>
-    </div>
-    <p style="font-size:13.5px;color:var(--muted);margin-top:22px">Preguntas? Escribinos a <a href="mailto:jesusjcopes@gmail.com" style="color:#a5b4fc;font-weight:600">jesusjcopes@gmail.com</a></p>
-  </div>
-</section>
+  <script>
+    const nav = document.getElementById('main-nav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 24), { passive: true });
 
-<footer>
-  <div class="container footer-inner">
-    <div class="nav-logo" style="font-size:15px"><div class="nav-logo-icon" style="width:30px;height:30px;font-size:15px">&#127978;</div>TPV Elite</div>
-    <div class="footer-copy">&copy; 2026 TPV Elite. Todos los derechos reservados.</div>
-    <ul class="footer-links">
-      <li><a href="#">Privacidad</a></li>
-      <li><a href="#">Licencia</a></li>
-      <li><a href="#contacto">Contacto</a></li>
-    </ul>
-  </div>
-</footer>
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (!entry.isIntersecting) return;
+        setTimeout(() => entry.target.classList.add('visible'), index * 80);
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal, .reveal-scale').forEach((element) => revealObserver.observe(element));
 
-<div class="modal-overlay" id="smartscreen-modal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-box">
-    <button class="modal-close" onclick="document.getElementById('smartscreen-modal').classList.remove('open')">&#10005;</button>
-    <h3>&#128737;&#65039; Windows bloqueo el instalador</h3>
-    <p>Es normal en apps nuevas sin certificado. Podés instalarlo sin riesgo en 30 segundos:</p>
-    <ul class="msteps-list">
-      <li><div class="mstep-n">1</div><div class="mstep-t"><strong>Si aparece "Control Inteligente"</strong><br>Ve a Configuracion &rarr; Privacidad &rarr; Seguridad de Windows &rarr; Control de aplicaciones y desactivalo temporalmente.</div></li>
-      <li><div class="mstep-n">2</div><div class="mstep-t"><strong>Si aparece "Windows protegió su PC"</strong><br>Haz clic en <span class="badge-btn">Mas informacion</span> y luego en <span class="badge-btn">Ejecutar de todos modos</span>.</div></li>
-      <li><div class="mstep-n">3</div><div class="mstep-t"><strong>Por que pasa esto?</strong><br>Windows advierte sobre apps sin firma digital costosa. TPV Elite es seguro &mdash; el codigo esta en <a href="https://github.com/plaanteos/TPVElite" target="_blank" style="color:#a5b4fc">GitHub</a>.</div></li>
-    </ul>
-  </div>
-</div>
+    function animateNumber(element, target, prefix = '', suffix = '') {
+      const duration = 1700;
+      const start = performance.now();
+      function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = Math.round(target * eased);
+        element.textContent = `${prefix}${value.toLocaleString('es-AR')}${suffix}`;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
 
-<script>
-/* Nav scroll */
-const nav = document.getElementById('main-nav');
-window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 30), {passive:true});
+    const metricsObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const element = entry.target;
+        animateNumber(element, parseInt(element.dataset.target || '0', 10), element.dataset.prefix || '', element.dataset.suffix || '');
+        metricsObserver.unobserve(element);
+      });
+    }, { threshold: .4 });
+    document.querySelectorAll('.metric-value[data-target]').forEach((element) => metricsObserver.observe(element));
 
-/* Reveal on scroll */
-const obs = new IntersectionObserver((entries) => {
-  entries.forEach((e, i) => {
-    if (!e.isIntersecting) return;
-    setTimeout(() => e.target.classList.add('visible'), i * 90);
-    obs.unobserve(e.target);
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-document.querySelectorAll('.reveal, .reveal-scale').forEach(el => obs.observe(el));
+    (function animateDashboard() {
+      const sales = document.getElementById('mock-sales');
+      const tx = document.getElementById('mock-tx');
+      const prods = document.getElementById('mock-prods');
+      const start = performance.now();
+      const duration = 2100;
+      function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        sales.textContent = '$' + Math.round(47761 * eased).toLocaleString('es-AR');
+        tx.textContent = Math.round(24 * eased);
+        prods.textContent = Math.round(138 * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
 
-/* Mouse glow on feat cards */
-document.querySelectorAll('.feat-card').forEach(card => {
-  card.addEventListener('mousemove', e => {
-    const r = card.getBoundingClientRect();
-    card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-    card.style.setProperty('--my', (e.clientY - r.top) + 'px');
-  });
-});
+    const businessTypes = [
+      ['🍦', 'Heladería'], ['🍕', 'Pizzería'], ['☕', 'Cafetería'], ['🛍️', 'Ropa y moda'],
+      ['💊', 'Farmacia'], ['🎮', 'Juguetería'], ['🥩', 'Carnicería'], ['🥗', 'Restaurante'],
+      ['📱', 'Tecnología'], ['🛒', 'Almacén'], ['🧁', 'Pastelería'], ['🍺', 'Bar'],
+      ['💇', 'Peluquería'], ['🎵', 'Música'], ['📚', 'Librería']
+    ];
+    const businessTrack = document.getElementById('biz-track');
+    const businessMarkup = businessTypes.map(([icon, label]) => `<div class="business-chip"><span>${icon}</span><span>${label}</span></div>`).join('');
+    businessTrack.innerHTML = businessMarkup + businessMarkup;
 
-/* Animated number counter */
-function animateNum(el, target, prefix, suffix) {
-  const dur = 1800, start = performance.now();
-  (function tick(now) {
-    const p = Math.min((now - start) / dur, 1);
-    const v = Math.round((1 - Math.pow(1 - p, 3)) * target);
-    el.textContent = (prefix||'') + v.toLocaleString('es-AR') + (suffix||'');
-    if (p < 1) requestAnimationFrame(tick);
-  })(start);
-}
+    function trackDownload() {
+      fetch('https://formspree.io/f/xojbelgl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          evento: 'Descarga TPV Elite',
+          fecha: new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }),
+          ua: navigator.userAgent.slice(0, 120),
+          res: `${screen.width}x${screen.height}`
+        })
+      }).catch(() => {});
+    }
 
-const sObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    const el = e.target;
-    animateNum(el, parseInt(el.dataset.target||0), el.dataset.prefix||'', el.dataset.suffix||'');
-    sObs.unobserve(el);
-  });
-}, {threshold:.5});
-document.querySelectorAll('.stat-num[data-target]').forEach(el => sObs.observe(el));
+    function checkUpdates() {
+      fetch('./version.json')
+        .then((response) => response.ok ? response.json() : null)
+        .then((data) => {
+          if (!data || !data.version) return;
+          const remoteVersion = data.version;
+          const lastSeenVersion = localStorage.getItem('tpvelite-last-version');
+          if (lastSeenVersion && remoteVersion !== lastSeenVersion) {
+            showUpdateBanner(remoteVersion, data.changelog || 'Descarga la versión mejorada');
+          }
+          localStorage.setItem('tpvelite-last-version', remoteVersion);
+        })
+        .catch(() => {});
+    }
 
-/* Biz type scrolling strip */
-const bizTypes = [
-  ['&#127846;','Heladeria'],['&#127829;','Pizzeria'],['&#9749;','Cafeteria'],
-  ['&#128717;&#65039;','Ropa y moda'],['&#128138;','Farmacia'],['&#127918;','Jugueteria'],
-  ['&#129385;','Carniceria'],['&#129367;','Restaurante'],['&#128241;','Tecnologia'],
-  ['&#128722;','Almacen'],['&#129361;','Pasteleria'],['&#127866;','Bar'],
-  ['&#128135;','Peluqueria'],['&#127925;','Musica'],['&#128218;','Libreria'],
-];
-const track = document.getElementById('biz-track');
-const chips = bizTypes.map(([ic,n]) => '<div class="biz-chip"><span>' + ic + '</span>' + n + '</div>').join('');
-track.innerHTML = chips + chips;
+    function showUpdateBanner(version, changelog) {
+      let banner = document.getElementById('update-banner');
+      if (banner) return;
+      banner = document.createElement('div');
+      banner.id = 'update-banner';
+      banner.style.cssText = [
+        'position:fixed',
+        'top:72px',
+        'left:16px',
+        'right:16px',
+        'z-index:400',
+        'padding:14px 18px',
+        'border-radius:16px',
+        'background:linear-gradient(135deg,#10b981,#6366F1)',
+        'color:#fff',
+        'box-shadow:0 18px 50px rgba(0,0,0,.28)'
+      ].join(';');
+      banner.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center;font-size:14px;font-weight:700;">
+          <span>✨ Nueva versión ${version} disponible — ${String(changelog).slice(0, 80)}</span>
+          <a href="./TPVElite_Setup.exe" download style="padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.22);font-size:13px;" onclick="trackDownload()">Descargar ahora</a>
+          <button type="button" style="padding:7px 12px;border-radius:999px;border:0;background:rgba(0,0,0,.16);color:#fff;cursor:pointer;" onclick="document.getElementById('update-banner').remove()">Cerrar</button>
+        </div>
+      `;
+      document.body.appendChild(banner);
+    }
 
-/* Mockup live counter */
-(function animateMockup() {
-  const s = document.getElementById('mock-sales');
-  const t = document.getElementById('mock-tx');
-  const p = document.getElementById('mock-prods');
-  const dur = 2200, start = performance.now();
-  (function tick(now) {
-    const e = 1 - Math.pow(1 - Math.min((now-start)/dur,1), 3);
-    s.textContent = '$' + Math.round(e*47850).toLocaleString('es-AR');
-    t.textContent = Math.round(e*24);
-    p.textContent = Math.round(e*138);
-    if (e < 1) requestAnimationFrame(tick);
-  })(start);
-})();
-
-/* Download counter — counterapi.dev */
-const NS = 'tpvelite-app', KEY = 'downloads';
-
-function showDl(n) {
-  if (!n || n < 1) return;
-  const pill = document.getElementById('dl-pill');
-  const num  = document.getElementById('dl-num');
-  if (!pill || !num) return;
-  pill.classList.add('show');
-  const dur = 1200, start = performance.now();
-  (function tick(now) {
-    const p = Math.min((now-start)/dur,1);
-    const v = Math.round((1-Math.pow(1-p,3))*n);
-    num.textContent = v >= 1000 ? (v/1000).toFixed(1).replace('.0','')+'k' : v;
-    if (p < 1) requestAnimationFrame(tick);
-  })(start);
-}
-
-fetch('https://api.counterapi.dev/v1/' + NS + '/' + KEY)
-  .then(r => r.ok ? r.json() : null)
-  .then(d => { if (d) showDl(d.count ?? d.value ?? 0); })
-  .catch(() => {});
-
-function trackDownload() {
-  fetch('https://api.counterapi.dev/v1/' + NS + '/' + KEY + '/up')
-    .then(r => r.ok ? r.json() : null)
-    .then(d => { if (d) showDl(d.count ?? d.value ?? 0); })
-    .catch(() => {});
-
-  fetch('https://formspree.io/f/xojbelgl', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json','Accept':'application/json'},
-    body: JSON.stringify({
-      evento: 'Descarga TPV Elite',
-      fecha: new Date().toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}),
-      ua: navigator.userAgent.slice(0,120),
-      res: screen.width + 'x' + screen.height
-    })
-  }).catch(() => {});
-}
-</script>
+    window.addEventListener('load', checkUpdates);
+    setInterval(checkUpdates, 5 * 60 * 1000);
+  </script>
 </body>
 </html>

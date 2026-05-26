@@ -30,6 +30,7 @@ logs/
 informes/
 informe_stock/
 pedidos/
+landing/*.exe
 
 # Config with secrets (keep config.json template but ignore local overrides)
 app/config.json

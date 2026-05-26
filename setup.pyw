@@ -39,6 +39,7 @@ WIN_W, WIN_H = 720, 640
 # Dependencias a instalar via pip
 DEPS = [
     "bcrypt",
+    "matplotlib",
     "pillow",
     "reportlab",
     "openpyxl",

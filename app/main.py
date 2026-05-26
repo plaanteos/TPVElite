@@ -55,7 +55,7 @@ try:
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
     from matplotlib.figure import Figure
     MATPLOTLIB_AVAILABLE = True
-except ImportError as e:
+except Exception as e:
     logger = logging.getLogger(__name__)
     logger.warning(f"Matplotlib no disponible: {e}")
     MATPLOTLIB_AVAILABLE = False
