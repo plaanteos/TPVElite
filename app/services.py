@@ -165,11 +165,11 @@ class ProductoService:
             success = self.db.execute_query(
                 """INSERT INTO productos 
                    (nombre, descripcion, categoria, precio, costo, stock, stock_minimo, 
-                    unidad_medida, codigo_barras, activo, fecha_creacion, fecha_modificacion)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)""",
+                    unidad_medida, codigo_barras, proveedor_id, activo, fecha_creacion, fecha_modificacion)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)""",
                 (producto.nombre, producto.descripcion, producto.categoria, producto.precio,
                  producto.costo, producto.stock, producto.stock_minimo, producto.unidad_medida,
-                 producto.codigo_barras, datetime.now(), datetime.now())
+                 producto.codigo_barras, getattr(producto, 'proveedor_id', None), datetime.now(), datetime.now())
             )
             
             if not success:
@@ -184,7 +184,7 @@ class ProductoService:
                 self.db.execute_query(
                     """INSERT INTO movimientos_inventario
                        (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id, 
-                        referencia, fecha, motivo)
+                        referencia, fecha, notas)
                        VALUES (?, 'ajuste', ?, 0, ?, ?, 'Stock inicial', ?, 'Stock inicial del producto')""",
                     (producto_id, producto.stock, producto.stock, usuario_id, datetime.now())
                 )
@@ -208,12 +208,13 @@ class ProductoService:
             success = self.db.execute_query(
                 """UPDATE productos SET
                    nombre = ?, descripcion = ?, categoria = ?, precio = ?, costo = ?,
-                   stock_minimo = ?, unidad_medida = ?, codigo_barras = ?,
+                   stock_minimo = ?, unidad_medida = ?, codigo_barras = ?, proveedor_id = ?,
                    fecha_modificacion = ?
                    WHERE id = ?""",
                 (producto.nombre, producto.descripcion, producto.categoria, producto.precio,
                  producto.costo, producto.stock_minimo, producto.unidad_medida,
-                 producto.codigo_barras, datetime.now(), producto_id)
+                 producto.codigo_barras, getattr(producto, 'proveedor_id', None),
+                 datetime.now(), producto_id)
             )
             
             if success:
@@ -242,6 +243,7 @@ class ProductoService:
                     stock_minimo=row['stock_minimo'],
                     unidad_medida=row['unidad_medida'],
                     codigo_barras=row['codigo_barras'],
+                    proveedor_id=row['proveedor_id'] if 'proveedor_id' in row.keys() else None,
                     activo=bool(row['activo'])
                 )
             return None
@@ -424,8 +426,8 @@ class VentaService:
                     cursor.execute(
                         """INSERT INTO movimientos_inventario
                            (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id,
-                            referencia, fecha, motivo)
-                           VALUES (?, 'salida', ?, ?, ?, ?, ?, ?, ?)""",
+                            referencia, fecha, notas)
+                           VALUES (?, 'venta', ?, ?, ?, ?, ?, ?, ?)""",
                         (detalle.producto_id, detalle.cantidad, producto.stock, nuevo_stock,
                          usuario_id, venta.numero_venta, datetime.now(),
                          f"Venta #{venta.numero_venta}")

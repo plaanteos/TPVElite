@@ -77,6 +77,7 @@ class Producto:
     unidad_medida: str = "unidad"
     codigo_barras: Optional[str] = None
     imagen_url: Optional[str] = None
+    proveedor_id: Optional[int] = None
     activo: bool = True
     fecha_creacion: Optional[datetime] = None
     fecha_modificacion: Optional[datetime] = None

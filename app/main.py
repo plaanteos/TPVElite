@@ -2457,8 +2457,8 @@ class ModernTPV:
                 if not password:
                     messagebox.showwarning("Advertencia", "Ingresá una contraseña.")
                     return
-                if len(password) < 6:
-                    messagebox.showwarning("Advertencia", "La contraseña debe tener al menos 6 caracteres.")
+                if len(password) < 4:
+                    messagebox.showwarning("Advertencia", "La contraseña debe tener al menos 4 caracteres.")
                     return
                 if password != password2:
                     messagebox.showwarning("Advertencia", "Las contraseñas no coinciden.")
@@ -4989,6 +4989,8 @@ class ModernTPV:
                             lambda: self._adjust_stock_dialog(products_tree), style='success')
         self._ui_action_btn(action_inner, '🗑️  Eliminar',
                             lambda: self._delete_product(products_tree), style='danger')
+        self._ui_action_btn(action_inner, '📥  Importar CSV',
+                            lambda: self._import_products_csv(products_tree), style='primary')
 
         # Cargar datos
         self._load_products_paginated(products_tree, pagination_label, nav_buttons)
@@ -5117,11 +5119,118 @@ class ModernTPV:
                                   producto.stock_minimo,
                                   estado))
     
+    def _import_products_csv(self, tree):
+        """Importa productos desde un archivo CSV o Excel"""
+        from tkinter import filedialog
+        import csv
+
+        filepath = filedialog.askopenfilename(
+            title="Seleccionar archivo de productos",
+            filetypes=[
+                ("Archivos CSV", "*.csv"),
+                ("Archivos de texto", "*.txt"),
+                ("Todos los archivos", "*.*"),
+            ]
+        )
+        if not filepath:
+            return
+
+        # Mostrar ventana de progreso/resultado
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Importar Productos")
+        dialog.geometry("600x420")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        frame = ttk.Frame(dialog, padding=20)
+        frame.pack(fill='both', expand=True)
+
+        ttk.Label(frame, text="Importar productos desde CSV",
+                  font=('Segoe UI', 13, 'bold')).pack(anchor='w')
+        ttk.Label(frame,
+                  text="Columnas esperadas: nombre, descripcion, categoria, precio, costo, stock, stock_minimo, unidad_medida\n"
+                       "La primera fila debe ser el encabezado. El separador puede ser coma (,) o punto y coma (;).",
+                  foreground='gray', wraplength=560, justify='left').pack(anchor='w', pady=(4, 10))
+
+        log_text = tk.Text(frame, height=12, font=('Courier New', 9), state='disabled')
+        log_text.pack(fill='both', expand=True)
+
+        def log(msg):
+            log_text.config(state='normal')
+            log_text.insert('end', msg + '\n')
+            log_text.see('end')
+            log_text.config(state='disabled')
+            dialog.update_idletasks()
+
+        def do_import():
+            try:
+                with open(filepath, newline='', encoding='utf-8-sig') as f:
+                    sample = f.read(1024)
+                    f.seek(0)
+                    dialect = csv.Sniffer().sniff(sample, delimiters=',;')
+                    reader = csv.DictReader(f, dialect=dialect)
+
+                    importados = 0
+                    errores = 0
+                    for i, row in enumerate(reader, start=2):
+                        nombre = (row.get('nombre') or '').strip()
+                        if not nombre:
+                            log(f"Fila {i}: nombre vacío, omitida.")
+                            errores += 1
+                            continue
+                        try:
+                            precio = float((row.get('precio') or '0').replace(',', '.'))
+                            costo = float((row.get('costo') or '0').replace(',', '.'))
+                            stock = int(float((row.get('stock') or '0').replace(',', '.')))
+                            stock_min = int(float((row.get('stock_minimo') or '5').replace(',', '.')))
+                            if precio <= 0:
+                                log(f"Fila {i}: '{nombre}' precio inválido ({precio}), omitida.")
+                                errores += 1
+                                continue
+                        except ValueError as ve:
+                            log(f"Fila {i}: '{nombre}' valor numérico inválido — {ve}, omitida.")
+                            errores += 1
+                            continue
+
+                        from models import Producto
+                        p = Producto()
+                        p.nombre = nombre
+                        p.descripcion = (row.get('descripcion') or '').strip()
+                        p.categoria = (row.get('categoria') or 'general').strip()
+                        p.precio = precio
+                        p.costo = costo
+                        p.stock = stock
+                        p.stock_minimo = stock_min
+                        p.unidad_medida = (row.get('unidad_medida') or 'unidad').strip()
+                        p.activo = True
+
+                        ok, msg, _ = self.producto_service.crear_producto(
+                            p, self.auth_service.current_user.id
+                        )
+                        if ok:
+                            log(f"Fila {i}: '{nombre}' importado OK.")
+                            importados += 1
+                        else:
+                            log(f"Fila {i}: '{nombre}' — {msg}")
+                            errores += 1
+
+                log(f"\n✅ Importación completada: {importados} productos importados, {errores} errores.")
+                self._load_all_products(tree)
+            except Exception as e:
+                log(f"Error al leer el archivo: {e}")
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="▶ Importar", command=do_import,
+                   style='Success.TButton').pack(side='left', padx=5)
+        ttk.Button(btn_frame, text="Cerrar", command=dialog.destroy,
+                   style='Danger.TButton').pack(side='left', padx=5)
+
     def _new_product_dialog(self, tree):
         """Diálogo para crear nuevo producto"""
         dialog = tk.Toplevel(self.root)
         dialog.title("Nuevo Producto")
-        dialog.geometry("500x600")
+        dialog.geometry("500x660")
         dialog.transient(self.root)
         dialog.grab_set()
         
@@ -5183,6 +5292,19 @@ class ModernTPV:
         fields['unidad_medida'].insert(0, "unidad")
         fields['unidad_medida'].grid(row=row, column=1, pady=5, padx=10)
         row += 1
+
+        # Proveedor
+        ttk.Label(form_frame, text="Proveedor:").grid(row=row, column=0, sticky='w', pady=5)
+        proveedores_db = self.db.fetch_all(
+            "SELECT id, nombre FROM proveedores WHERE activo = 1 ORDER BY nombre"
+        )
+        proveedor_opciones = ['— Sin proveedor —'] + [p['nombre'] for p in proveedores_db]
+        proveedor_ids = [None] + [p['id'] for p in proveedores_db]
+        proveedor_var = tk.StringVar(value=proveedor_opciones[0])
+        proveedor_combo = ttk.Combobox(form_frame, textvariable=proveedor_var,
+                                       values=proveedor_opciones, state='readonly', width=38)
+        proveedor_combo.grid(row=row, column=1, pady=5, padx=10)
+        row += 1
         
         def save_product():
             try:
@@ -5197,6 +5319,8 @@ class ModernTPV:
                 producto.stock_minimo = int(fields['stock_minimo'].get())
                 producto.unidad_medida = fields['unidad_medida'].get().strip()
                 producto.activo = True
+                idx = proveedor_opciones.index(proveedor_var.get()) if proveedor_var.get() in proveedor_opciones else 0
+                producto.proveedor_id = proveedor_ids[idx]
                 
                 success, message, producto_id = self.producto_service.crear_producto(
                     producto,
@@ -5235,7 +5359,7 @@ class ModernTPV:
         
         dialog = tk.Toplevel(self.root)
         dialog.title(f"Editar Producto #{producto_id}")
-        dialog.geometry("500x600")
+        dialog.geometry("500x660")
         dialog.transient(self.root)
         dialog.grab_set()
         
@@ -5294,6 +5418,22 @@ class ModernTPV:
         fields['unidad_medida'].insert(0, producto.unidad_medida or 'unidad')
         fields['unidad_medida'].grid(row=row, column=1, pady=5, padx=10)
         row += 1
+
+        # Proveedor
+        ttk.Label(form_frame, text="Proveedor:").grid(row=row, column=0, sticky='w', pady=5)
+        proveedores_db = self.db.fetch_all(
+            "SELECT id, nombre FROM proveedores WHERE activo = 1 ORDER BY nombre"
+        )
+        proveedor_opciones = ['— Sin proveedor —'] + [p['nombre'] for p in proveedores_db]
+        proveedor_ids = [None] + [p['id'] for p in proveedores_db]
+        sel_idx = 0
+        if producto.proveedor_id and producto.proveedor_id in proveedor_ids:
+            sel_idx = proveedor_ids.index(producto.proveedor_id)
+        proveedor_var = tk.StringVar(value=proveedor_opciones[sel_idx])
+        proveedor_combo = ttk.Combobox(form_frame, textvariable=proveedor_var,
+                                       values=proveedor_opciones, state='readonly', width=38)
+        proveedor_combo.grid(row=row, column=1, pady=5, padx=10)
+        row += 1
         
         def update_product():
             try:
@@ -5304,6 +5444,8 @@ class ModernTPV:
                 producto.costo = float(fields['costo'].get())
                 producto.stock_minimo = int(fields['stock_minimo'].get())
                 producto.unidad_medida = fields['unidad_medida'].get().strip()
+                idx = proveedor_opciones.index(proveedor_var.get()) if proveedor_var.get() in proveedor_opciones else 0
+                producto.proveedor_id = proveedor_ids[idx]
                 
                 success, message = self.producto_service.actualizar_producto(producto_id, producto)
                 
@@ -5848,25 +5990,24 @@ class ModernTPV:
                 messagebox.showwarning("Advertencia", "El nombre es obligatorio", parent=dialog)
                 return
             
-            try:
-                self.db.execute_query("""
-                    INSERT INTO proveedores (nombre, contacto, telefono, email, direccion, notas, activo)
-                    VALUES (?, ?, ?, ?, ?, ?, 1)
-                """, (
-                    nombre,
-                    contacto_entry.get().strip() or None,
-                    telefono_entry.get().strip() or None,
-                    email_entry.get().strip() or None,
-                    direccion_text.get('1.0', 'end').strip() or None,
-                    notas_text.get('1.0', 'end').strip() or None
-                ))
-                
+            ok = self.db.execute_query("""
+                INSERT INTO proveedores (nombre, contacto, telefono, email, direccion, notas, activo)
+                VALUES (?, ?, ?, ?, ?, ?, 1)
+            """, (
+                nombre,
+                contacto_entry.get().strip() or None,
+                telefono_entry.get().strip() or None,
+                email_entry.get().strip() or None,
+                direccion_text.get('1.0', 'end').strip() or None,
+                notas_text.get('1.0', 'end').strip() or None
+            ))
+            
+            if ok:
                 messagebox.showinfo("Éxito", "Proveedor creado correctamente", parent=dialog)
                 self._load_proveedores(self.proveedores_tree)
                 dialog.destroy()
-            except Exception as e:
-                logger.error(f"Error al crear proveedor: {e}")
-                messagebox.showerror("Error", f"No se pudo crear el proveedor: {str(e)}", parent=dialog)
+            else:
+                messagebox.showerror("Error", "No se pudo guardar el proveedor. Revisá los logs.", parent=dialog)
         
         ttk.Button(btn_frame, text="Guardar", command=save_proveedor,
                   style='Success.TButton').pack(side='left', padx=5)
@@ -7559,8 +7700,8 @@ Python: {sys.version.split()[0]}
                 messagebox.showerror("Error", "Las contraseñas no coinciden")
                 return
             
-            if len(new) < 6:
-                messagebox.showerror("Error", "La contraseña debe tener al menos 6 caracteres")
+            if len(new) < 4:
+                messagebox.showerror("Error", "La contraseña debe tener al menos 4 caracteres")
                 return
             
             # Verificar contraseña actual
@@ -8005,8 +8146,8 @@ Python: {sys.version.split()[0]}
                 messagebox.showerror("Error", "La contraseña es obligatoria")
                 return
             
-            if len(password) < 6:
-                messagebox.showerror("Error", "La contraseña debe tener al menos 6 caracteres")
+            if len(password) < 4:
+                messagebox.showerror("Error", "La contraseña debe tener al menos 4 caracteres")
                 return
             
             if password != confirm_password:
@@ -8309,8 +8450,8 @@ Python: {sys.version.split()[0]}
                 password_entry.focus()
                 return
             
-            if len(password) < 6:
-                messagebox.showerror("Error", "La contraseña debe tener al menos 6 caracteres")
+            if len(password) < 4:
+                messagebox.showerror("Error", "La contraseña debe tener al menos 4 caracteres")
                 password_entry.focus()
                 return
             

@@ -60,6 +60,7 @@ class DatabaseManager:
             ("detalles_pedido", "recibido", "ALTER TABLE detalles_pedido ADD COLUMN recibido INTEGER DEFAULT 0"),
             ("pedidos", "subtotal", "ALTER TABLE pedidos ADD COLUMN subtotal REAL DEFAULT 0"),
             ("pedidos", "impuestos", "ALTER TABLE pedidos ADD COLUMN impuestos REAL DEFAULT 0"),
+            ("productos", "proveedor_id", "ALTER TABLE productos ADD COLUMN proveedor_id INTEGER REFERENCES proveedores(id)"),
         ]
         for table, column, sql in migrations:
             cursor.execute(f"PRAGMA table_info({table})")
@@ -71,6 +72,29 @@ class DatabaseManager:
                     logger.info(f"Migración aplicada: {table}.{column}")
                 except sqlite3.Error as e:
                     logger.warning(f"Migración omitida {table}.{column}: {e}")
+
+        # Crear tabla proveedores si no existe (migración de tablas completas)
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='proveedores'")
+        if not cursor.fetchone():
+            try:
+                cursor.execute('''
+                    CREATE TABLE proveedores (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nombre TEXT NOT NULL,
+                        contacto TEXT,
+                        telefono TEXT,
+                        email TEXT,
+                        direccion TEXT,
+                        notas TEXT,
+                        activo INTEGER DEFAULT 1,
+                        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        CHECK (activo IN (0, 1))
+                    )
+                ''')
+                conn.commit()
+                logger.info("Migración aplicada: tabla proveedores creada")
+            except sqlite3.Error as e:
+                logger.warning(f"Migración omitida tabla proveedores: {e}")
 
 
     def _get_connection(self) -> sqlite3.Connection:
@@ -217,6 +241,22 @@ class DatabaseManager:
                 )
             ''')
             
+            # Tabla de proveedores
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS proveedores (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT NOT NULL,
+                    contacto TEXT,
+                    telefono TEXT,
+                    email TEXT,
+                    direccion TEXT,
+                    notas TEXT,
+                    activo INTEGER DEFAULT 1,
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    CHECK (activo IN (0, 1))
+                )
+            ''')
+
             # Tabla de sesiones
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS sesiones (
