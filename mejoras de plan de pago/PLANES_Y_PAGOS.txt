@@ -1,0 +1,134 @@
+# Integración de Pasarela de Pagos — TPV Elite
+
+## Estado
+> **Pendiente de implementación.** Este archivo documenta la planificación y credenciales de prueba.
+
+---
+
+## Token de Acceso — MercadoPago (prueba)
+
+```
+TEST-1019606222355892-051911-cdaf7c8806e562d9eec36c11d316bcac-438987571
+```
+
+- Tipo: Access Token de prueba (sandbox)
+- Proveedor: MercadoPago
+- Antes de producción: reemplazar por el token productivo correspondiente
+- **No exponer este token en código del frontend ni en repositorios públicos**
+
+---
+
+## Arquitectura de datos
+
+```
+Usuarios
+ └── Negocios
+       └── Sucursales
+             ├── Empleados        (quién trabaja en la sucursal)
+             ├── Productos        (inventario por sucursal)
+             └── Ventas           (referencia al empleado que la procesó)
+```
+
+> Nota: Las ventas pertenecen a la sucursal, no al empleado.
+> El empleado se registra como referencia para auditoría, pero no es el dueño del dato.
+
+---
+
+## Flujo del usuario
+
+```
+Landing Page
+   ↓
+"Comenzar Gratis"
+   ↓
+Login con Google
+   ↓
+Crear negocio → sucursal inicial creada automáticamente
+   ↓
+Trial activo (30 días, sin tarjeta)
+   ↓
+Entrar al sistema
+   ↓
+Al vencer el trial:
+    → Elegir Plan Básico (USD 10/mes)
+    → Elegir Plan PRO    (USD 20/mes)
+    → No pagar → cuenta suspendida (datos retenidos 30 días)
+   ↓
+Pasarela de pago (MercadoPago)
+   ↓
+Suscripción activa
+   ↓
+Renovación automática mensual
+```
+
+---
+
+## Modelo de Suscripción
+
+### Período de prueba
+- **1 mes gratis** para todos los usuarios nuevos
+- Sin requerir tarjeta de crédito al registrarse (a definir flujo exacto)
+- Al vencer el trial, el usuario elige un plan o la cuenta se suspende
+
+---
+
+## Planes
+
+### Plan Básico — USD 10 / mes
+
+Pensado para kioscos, minimercados, almacenes, heladerías y pequeños locales.
+
+#### Límites operativos
+- 1 sucursal
+- Hasta 3 empleados
+- Hasta 3.000 productos
+
+#### Incluye
+- Ventas (punto de venta)
+- Control de stock
+- Tickets
+- Reportes básicos
+- Estadísticas avanzadas
+- Exportaciones masivas
+- Backup automático
+- Soporte normal
+
+#### No incluye
+- Multi-sucursal
+- Permisos avanzados
+- Auditorías completas
+- Dashboard avanzado
+
+---
+
+### Plan PRO — USD 20 / mes
+
+Pensado para supermercados, cadenas, negocios medianos y empresas.
+
+#### Límites operativos
+- Sucursales ilimitadas
+- Empleados ilimitados
+- Productos ilimitados
+
+#### Incluye todo el Plan Básico, más
+- Dashboard inteligente
+- Auditoría completa
+- Historial avanzado
+- Exportación Excel/PDF
+- Roles y permisos avanzados
+- Estadísticas avanzadas
+- Backups premium
+- Soporte prioritario
+- Acceso a futuras integraciones
+
+---
+
+## Notas de implementación (pendiente)
+
+- [ ] Crear cuenta de MercadoPago productiva y obtener token de producción
+- [ ] Implementar webhook para confirmar pagos y activar/suspender cuentas
+- [ ] Guardar estado de suscripción en base de datos por negocio
+- [ ] Mostrar banner de trial restante dentro de la app
+- [ ] Página de planes y precios en landing (`/pricing`)
+- [ ] Bloqueo de acceso al vencer el trial sin suscripción activa
+- [ ] Flujo de upgrade de Básico a PRO
