@@ -45,7 +45,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import logging
 
-APP_VERSION = "3.0.0"
+APP_VERSION = "3.0.1"
 UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
 
 # Configurar e importar matplotlib

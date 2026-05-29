@@ -1108,7 +1108,7 @@
           if (!data || !data.version) return;
           const remoteVersion = data.version;
           const lastSeenVersion = localStorage.getItem('tpvelite-last-version');
-          if (lastSeenVersion && remoteVersion !== lastSeenVersion) {
+          if (!lastSeenVersion || remoteVersion !== lastSeenVersion) {
             showUpdateBanner(remoteVersion, data.changelog || 'Descarga la versión mejorada');
           }
           localStorage.setItem('tpvelite-last-version', remoteVersion);

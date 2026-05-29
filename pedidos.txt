@@ -1416,6 +1416,8 @@ Versión del documento: 2.0
 
 
 
+
+
 Muchas gracias por la confianza y por dejarme ser quien haga su programa de gestión.
 """ 
         help_text.insert('1.0', guia)
@@ -1431,3 +1433,12 @@ def main():
         
 if __name__ == "__main__":
     main()
+
+
+
+
+bueno genial, ahora haremos lo siguiente:
+vamos a hacer que se logueen por medio de google cuando le den a descargar, entonces con esto vamos a poder trner el control de la pasarela de pagos y planes que luego agregaremos, ahora usa estos datos que son de prueba y luego crearé uno nuevo para la produccion:
+
+    secreto del cliente: [REDACTED_GOOGLE_CLIENT_SECRET]
+    ID vliente: [REDACTED_GOOGLE_CLIENT_ID]
