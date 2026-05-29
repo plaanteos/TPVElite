@@ -1,7 +1,7 @@
 """
 Sistema TPV para Heladería - Aplicación Principal
 Autor: Jesus
-Versión: 3.0.0 - ELITE EDITION
+Versión: 3.0.3 - ELITE EDITION
 Descripción: Aplicación con interfaz ultra moderna, animaciones fluidas y diseño premium
 """
 
@@ -36,6 +36,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
 import sys
+import shutil
 import threading
 import json
 import tempfile
@@ -45,7 +46,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import logging
 
-APP_VERSION = "3.0.1"
+APP_VERSION = "3.0.3"
 UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
 
 # Configurar e importar matplotlib
@@ -113,38 +114,123 @@ def check_for_updates(root: tk.Tk):
 
 
 def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str):
-    """Muestra el diálogo de actualización y, si el usuario acepta, descarga e instala."""
-    msg = (
-        f"¡Nueva versión disponible! ({version})\n\n"
-        f"{changelog}\n\n"
-        "¿Querés actualizar ahora?"
+    """Muestra un diálogo in-app para confirmar la descarga de la actualización."""
+
+    def _close_dialog(dialog: tk.Toplevel):
+        if dialog.winfo_exists():
+            dialog.destroy()
+
+    def _start_download(dialog: tk.Toplevel):
+        _close_dialog(dialog)
+
+        prog_win = tk.Toplevel(root)
+        prog_win.title("Descargando actualización...")
+        prog_win.resizable(False, False)
+        prog_win.transient(root)
+        prog_win.grab_set()
+        prog_win.attributes('-topmost', True)
+        w, h = 380, 120
+        prog_win.geometry(
+            f"{w}x{h}+{root.winfo_x()+(root.winfo_width()-w)//2}+{root.winfo_y()+(root.winfo_height()-h)//2}"
+        )
+        prog_win.configure(bg="#0f1419")
+
+        tk.Label(
+            prog_win,
+            text="Descargando la nueva versión...",
+            bg="#0f1419",
+            fg="#f1f5ff",
+            font=("Segoe UI", 11, "bold"),
+            pady=14,
+        ).pack()
+        bar = ttk.Progressbar(prog_win, mode='indeterminate', length=320)
+        bar.pack(pady=8)
+        bar.start(10)
+        prog_win.update_idletasks()
+
+        def _download():
+            try:
+                tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.exe')
+                tmp.close()
+                urllib.request.urlretrieve(url, tmp.name)
+                root.after(0, lambda: _launch_installer(root, prog_win, tmp.name))
+            except Exception as error:
+                root.after(0, lambda: _download_error(prog_win, str(error)))
+
+        threading.Thread(target=_download, daemon=True).start()
+
+    dialog = tk.Toplevel(root)
+    dialog.title("Actualización disponible")
+    dialog.resizable(False, False)
+    dialog.transient(root)
+    dialog.grab_set()
+    dialog.attributes('-topmost', True)
+    dialog.configure(bg="#0f1419")
+    dialog.protocol("WM_DELETE_WINDOW", lambda: _close_dialog(dialog))
+
+    w, h = 520, 260
+    dialog.geometry(
+        f"{w}x{h}+{root.winfo_x()+(root.winfo_width()-w)//2}+{root.winfo_y()+(root.winfo_height()-h)//2}"
     )
-    if not messagebox.askyesno("Actualización disponible", msg, parent=root):
-        return
 
-    # Ventana de progreso
-    prog_win = tk.Toplevel(root)
-    prog_win.title("Descargando actualización...")
-    prog_win.resizable(False, False)
-    prog_win.grab_set()
-    w, h = 360, 100
-    prog_win.geometry(f"{w}x{h}+{root.winfo_x()+(root.winfo_width()-w)//2}+{root.winfo_y()+(root.winfo_height()-h)//2}")
-    tk.Label(prog_win, text="Descargando, por favor esperá...", pady=16).pack()
-    bar = ttk.Progressbar(prog_win, mode='indeterminate', length=300)
-    bar.pack(pady=4)
-    bar.start(10)
-    prog_win.update()
+    container = tk.Frame(dialog, bg="#0f1419", padx=24, pady=22)
+    container.pack(fill="both", expand=True)
 
-    def _download():
-        try:
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.exe')
-            tmp.close()
-            urllib.request.urlretrieve(url, tmp.name)
-            root.after(0, lambda: _launch_installer(root, prog_win, tmp.name))
-        except Exception as e:
-            root.after(0, lambda: _download_error(prog_win, str(e)))
+    tk.Label(
+        container,
+        text=f"Nueva versión {version} disponible",
+        bg="#0f1419",
+        fg="#f1f5ff",
+        font=("Segoe UI", 16, "bold"),
+        anchor="w",
+    ).pack(fill="x")
 
-    threading.Thread(target=_download, daemon=True).start()
+    tk.Label(
+        container,
+        text=changelog or "Hay una actualización lista para descargar.",
+        bg="#0f1419",
+        fg="#b8c4d6",
+        font=("Segoe UI", 10),
+        justify="left",
+        wraplength=460,
+        anchor="w",
+        pady=14,
+    ).pack(fill="x")
+
+    buttons = tk.Frame(container, bg="#0f1419")
+    buttons.pack(fill="x", side="bottom")
+
+    tk.Button(
+        buttons,
+        text="Descargar actualización",
+        command=lambda: _start_download(dialog),
+        bg="#6366f1",
+        fg="white",
+        activebackground="#4f46e5",
+        activeforeground="white",
+        relief="flat",
+        padx=16,
+        pady=8,
+        font=("Segoe UI", 10, "bold"),
+    ).pack(side="left")
+
+    tk.Button(
+        buttons,
+        text="Ahora no",
+        command=lambda: _close_dialog(dialog),
+        bg="#1f2937",
+        fg="#f1f5ff",
+        activebackground="#374151",
+        activeforeground="#f1f5ff",
+        relief="flat",
+        padx=16,
+        pady=8,
+        font=("Segoe UI", 10, "bold"),
+    ).pack(side="left", padx=10)
+
+    dialog.after(250, lambda: dialog.attributes('-topmost', False))
+    dialog.after(0, dialog.lift)
+    dialog.after(0, dialog.focus_force)
 
 
 def _launch_installer(root: tk.Tk, prog_win: tk.Toplevel, exe_path: str):
@@ -1278,8 +1364,15 @@ class ModernTPV:
     def __init__(self, root: tk.Tk):
         self.root = root
 
+        # Configuración persistente en AppData para no perder estado al actualizar.
+        self.app_data_dir = get_app_data_dir()
+        ensure_directory(self.app_data_dir)
+        self.config_path = os.path.join(self.app_data_dir, 'config.json')
+        self._ensure_runtime_config()
+
         # Cargar config primero — todo lo demás depende de ella
-        self.config = load_config('config.json')
+        self.config = load_config(self.config_path)
+        self._sync_runtime_version()
         _b = self.config.get('business', {})
         self.root.title(f"{_b.get('tipo_emoji','🏪')} {_b.get('nombre','Sistema TPV Elite')} — {_b.get('tipo_label','')}")
         self.current_theme = self.config.get('theme', 'dark')  # 'dark' o 'light'
@@ -1318,6 +1411,41 @@ class ModernTPV:
         self.root.after(3000, lambda: check_for_updates(self.root))
 
         logger.info("✨ Aplicación ELITE iniciada correctamente")
+
+    def _ensure_runtime_config(self):
+        """Asegura que exista un config persistente reutilizable entre versiones."""
+        if os.path.exists(self.config_path):
+            return
+
+        bundled_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+        legacy_config_path = os.path.abspath('config.json')
+
+        try:
+            if os.path.exists(legacy_config_path):
+                shutil.copy2(legacy_config_path, self.config_path)
+                logger.info(f"Config migrada desde ruta legacy a AppData: {self.config_path}")
+            elif os.path.exists(bundled_config_path):
+                shutil.copy2(bundled_config_path, self.config_path)
+                logger.info(f"Config inicial creada en AppData: {self.config_path}")
+            else:
+                save_config({}, self.config_path)
+                logger.warning("No se encontró config base, se creó una vacía en AppData")
+        except Exception as e:
+            logger.error(f"No se pudo preparar config persistente: {e}")
+
+    def _sync_runtime_version(self):
+        """Mantiene sincronizada la versión persistida con la versión real de la app."""
+        app_config = self.config.setdefault('app', {})
+        if app_config.get('version') == APP_VERSION:
+            return
+
+        app_config['version'] = APP_VERSION
+        app_config.setdefault('name', 'Sistema TPV Elite')
+
+        try:
+            save_config(self.config, self.config_path)
+        except Exception as e:
+            logger.warning(f"No se pudo sincronizar la versión de runtime: {e}")
     
     def _setup_keyboard_shortcuts(self):
         """Configura los atajos de teclado de la aplicación"""
@@ -1417,7 +1545,6 @@ class ModernTPV:
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heladeria.db')
 
         # Asegurar directorios para backups y reportes
-        self.app_data_dir = get_app_data_dir()
         ensure_directory(self.app_data_dir)
         ensure_directory(os.path.join(self.app_data_dir, 'backups'))
         ensure_directory(os.path.join(self.app_data_dir, 'reports'))
@@ -1442,7 +1569,7 @@ class ModernTPV:
             import cloud_sync
 
             config_cloud = self.config.get('cloud', {})
-            config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+            config_path = self.config_path
 
             # Generar tenant_id si aún no existe
             if not config_cloud.get('tenant_id'):
@@ -1450,7 +1577,7 @@ class ModernTPV:
                 cloud_sync.guardar_tenant_id(config_path, nuevo_id)
                 config_cloud['tenant_id'] = nuevo_id
                 # Recargar config en memoria
-                self.config = load_config('config.json')
+                self.config = load_config(self.config_path)
                 logger.info(f"Tenant ID generado: {nuevo_id}")
 
             sync = cloud_sync.inicializar(config_cloud)
@@ -1703,10 +1830,7 @@ class ModernTPV:
             
             # Guardar en configuración
             self.config['theme'] = self.current_theme
-            import json
-            config_path = os.path.join(os.path.dirname(__file__), 'config.json')
-            with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump(self.config, f, indent=4)
+            save_config(self.config, self.config_path)
             
             # Mostrar notificación
             theme_name = "Claro ☀️" if self.current_theme == 'light' else "Oscuro 🌙"
@@ -2543,7 +2667,7 @@ class ModernTPV:
                 self.config['app']['name'] = f"Sistema TPV — {data['nombre']}"
                 if data.get('simbolo_moneda'):
                     self.config.setdefault('currency', {})['symbol'] = data['simbolo_moneda']
-                save_config(self.config, 'config.json')
+                save_config(self.config, self.config_path)
 
                 # Crear usuario admin en la base de datos
                 try:
@@ -2643,7 +2767,7 @@ class ModernTPV:
         sep.pack()
 
         # Versión
-        tk.Label(brand_box, text="v2.0  •  Gestión profesional",
+        tk.Label(brand_box, text=f"v{APP_VERSION}  •  Gestión profesional",
                  font=('Segoe UI', 9),
                  bg=self.colors['secondary_dark'],
                  fg=self.colors['text_muted']).pack(pady=(14, 0))
@@ -7651,7 +7775,7 @@ Estado: {'Activo' if user.activo else 'Inactivo'}
         
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heladeria.db')
         system_info = f"""
-Versión: 2.0.0
+    Versión: {APP_VERSION}
 Base de datos: {db_path}
 Directorio de datos: {self.app_data_dir}
 Python: {sys.version.split()[0]}
@@ -8677,8 +8801,8 @@ HORARIO DE ATENCIÓN:
    Domingos y feriados: Cerrado
 
 INFORMACIÓN DE LA VERSIÓN:
-   Versión: 2.0.0
-   Fecha: Octubre 2025
+    Versión: {APP_VERSION}
+    Fecha: Mayo 2026
    Desarrollador: Jesús Copes
    Licencia: MIT
 

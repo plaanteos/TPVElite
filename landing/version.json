@@ -1,5 +1,5 @@
 {
-  "version": "3.0.1",
+  "version": "3.0.3",
   "download_url": "https://tpvelite.surge.sh/TPVElite_Setup.exe",
-  "changelog": "Landing enfocada en beneficios para el cliente, con mensaje comercial y captura mejorada."
+  "changelog": "Release técnico: flujo release one-shot automatizado"
 }
