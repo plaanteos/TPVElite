@@ -346,7 +346,7 @@ class DatabaseManager:
             last_id = cursor.lastrowid
             conn.commit()
             logger.debug(f"Query ejecutada: {query[:100]}...")
-            self._sync_despues_de_write(query, last_id)
+            self._sync_despues_de_write(query, params, last_id)
             return True
         except sqlite3.Error as e:
             logger.error(f"Error al ejecutar query: {e}")
@@ -417,7 +417,7 @@ class DatabaseManager:
             conn.commit()
             logger.info(f"Transacción ejecutada correctamente ({len(operations)} operaciones)")
             for query, last_id in last_ids:
-                self._sync_despues_de_write(query, last_id)
+                self._sync_despues_de_write(query, (), last_id)
             return True
         except sqlite3.Error as e:
             logger.error(f"Error en transacción: {e}")
@@ -443,7 +443,11 @@ class DatabaseManager:
             logger.error(f"Error al crear backup: {e}")
             return False
     
-    def _sync_despues_de_write(self, query: str, last_id: Optional[int]):
+    def sync_after_write(self, query: str, params: tuple = (), last_id: Optional[int] = None):
+        """Expone el despachador de sync para escrituras hechas fuera de execute_query."""
+        self._sync_despues_de_write(query, params, last_id)
+
+    def _sync_despues_de_write(self, query: str, params: tuple, last_id: Optional[int]):
         """
         Detecta la tabla afectada por la query y despacha la fila al cloud sync.
         Solo actúa si hay un cloud sync habilitado y la tabla está en la lista.
@@ -467,16 +471,29 @@ class DatabaseManager:
                         return
 
                     if accion == 'delete':
-                        # Para delete solo necesitamos el local_id
-                        if last_id:
-                            sync.push(tabla, 'delete', {'local_id': last_id})
-                    elif last_id:
-                        # Leer la fila recién escrita para enviarla completa
-                        fila = self.fetch_one(
-                            f"SELECT * FROM {tabla} WHERE id = ?", (last_id,)
-                        )
-                        if fila:
-                            sync.push(tabla, 'upsert', dict(fila))
+                        # Para delete preferimos el id explícito del WHERE; si no, usamos last_id.
+                        objetivo_id = params[-1] if params else last_id
+                        if objetivo_id:
+                            sync.push(tabla, 'delete', {'id': objetivo_id})
+                    else:
+                        if patron is _RE_INSERT:
+                            objetivo_id = last_id
+                        else:
+                            # En updates, el id real suele venir como último parámetro.
+                            objetivo_id = params[-1] if params else last_id
+
+                        if objetivo_id:
+                            fila = self.fetch_one(
+                                f"SELECT * FROM {tabla} WHERE id = ?", (objetivo_id,)
+                            )
+                            if fila:
+                                sync.push(tabla, 'upsert', dict(fila))
+                        elif last_id:
+                            fila = self.fetch_one(
+                                f"SELECT * FROM {tabla} WHERE id = ?", (last_id,)
+                            )
+                            if fila:
+                                sync.push(tabla, 'upsert', dict(fila))
                     break
         except Exception as exc:
             logger.debug(f"Cloud sync dispatch omitido: {exc}")

@@ -93,6 +93,10 @@ class AuthService:
                 "INSERT INTO sesiones (usuario_id, fecha_inicio, activa) VALUES (?, ?, 1)",
                 (usuario.id, datetime.now())
             )
+
+            # Guardar referencia de sesión para cerrar correctamente en logout.
+            session_row = self.db.fetch_one("SELECT last_insert_rowid() as id")
+            self.current_session_id = session_row['id'] if session_row else None
             
             self.current_user = usuario
             logger.info(f"Usuario '{username}' inició sesión correctamente")
@@ -386,6 +390,7 @@ class VentaService:
             
             try:
                 cursor.execute("BEGIN TRANSACTION")
+                operaciones_sync = []
                 
                 # 1. Insertar venta
                 cursor.execute(
@@ -400,6 +405,13 @@ class VentaService:
                 
                 # Obtener el ID de la venta recién insertada
                 venta_id = cursor.lastrowid
+                operaciones_sync.append((
+                    "INSERT INTO ventas (numero_venta, fecha, usuario_id, cliente_nombre, subtotal, descuento, impuestos, total, metodo_pago, estado, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    venta_id,
+                    (venta.numero_venta, venta.fecha, usuario_id, venta.cliente_nombre,
+                     venta.subtotal, venta.descuento, venta.impuestos, venta.total,
+                     venta.metodo_pago, venta.estado, venta.notas),
+                ))
                 
                 # 2. Procesar cada detalle
                 for detalle in venta.detalles:
@@ -411,6 +423,12 @@ class VentaService:
                         (venta_id, detalle.producto_id, detalle.cantidad,
                          detalle.precio_unitario, detalle.subtotal)
                     )
+                    operaciones_sync.append((
+                        "INSERT INTO detalles_venta (venta_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)",
+                        cursor.lastrowid,
+                        (venta_id, detalle.producto_id, detalle.cantidad,
+                         detalle.precio_unitario, detalle.subtotal),
+                    ))
                     
                     # Obtener producto para stock actual
                     producto = self.producto_service.obtener_producto(detalle.producto_id)
@@ -421,6 +439,11 @@ class VentaService:
                         "UPDATE productos SET stock = ?, fecha_modificacion = ? WHERE id = ?",
                         (nuevo_stock, datetime.now(), detalle.producto_id)
                     )
+                    operaciones_sync.append((
+                        "UPDATE productos SET stock = ?, fecha_modificacion = ? WHERE id = ?",
+                        detalle.producto_id,
+                        (nuevo_stock, datetime.now(), detalle.producto_id),
+                    ))
                     
                     # Registrar movimiento de inventario
                     cursor.execute(
@@ -432,9 +455,19 @@ class VentaService:
                          usuario_id, venta.numero_venta, datetime.now(),
                          f"Venta #{venta.numero_venta}")
                     )
+                    operaciones_sync.append((
+                        "INSERT INTO movimientos_inventario (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id, referencia, fecha, notas) VALUES (?, 'venta', ?, ?, ?, ?, ?, ?, ?)",
+                        cursor.lastrowid,
+                        (detalle.producto_id, detalle.cantidad, producto.stock, nuevo_stock,
+                         usuario_id, venta.numero_venta, datetime.now(),
+                         f"Venta #{venta.numero_venta}"),
+                    ))
                 
                 # ✅ Confirmar transacción
                 conn.commit()
+
+                for query, last_id, params in operaciones_sync:
+                    self.db.sync_after_write(query, params, last_id)
                 
             except Exception as e:
                 # ❌ Revertir cambios si hay error

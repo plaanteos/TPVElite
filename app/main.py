@@ -235,7 +235,15 @@ def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str):
 
 def _launch_installer(root: tk.Tk, prog_win: tk.Toplevel, exe_path: str):
     prog_win.destroy()
-    subprocess.Popen([exe_path])
+
+    # Actualización tipo "one-click": sin wizard y sobre la instalación actual.
+    install_dir = os.path.dirname(os.path.abspath(__file__))
+    subprocess.Popen([
+        exe_path,
+        '--auto-update',
+        '--target', install_dir,
+        '--restart'
+    ])
     root.destroy()
 
 
@@ -1400,8 +1408,8 @@ class ModernTPV:
         # Configurar atajos de teclado
         self._setup_keyboard_shortcuts()
         
-        # Mostrar pantalla de login con animación o wizard si es primera vez
-        if not self.config.get('business', {}).get('configured', False):
+        # Mostrar pantalla de login o forzar wizard cuando no hay usuarios activos.
+        if self._should_run_setup_wizard():
             self.show_setup_wizard()
         else:
             self._apply_business_branding()
@@ -1446,6 +1454,31 @@ class ModernTPV:
             save_config(self.config, self.config_path)
         except Exception as e:
             logger.warning(f"No se pudo sincronizar la versión de runtime: {e}")
+
+    def _should_run_setup_wizard(self) -> bool:
+        """Determina si corresponde abrir wizard inicial por falta de configuración o usuarios."""
+        business = self.config.get('business', {})
+        if not business.get('configured', False):
+            return True
+
+        try:
+            row = self.db.fetch_one(
+                "SELECT COUNT(1) AS total FROM usuarios WHERE activo = 1"
+            )
+            total_activos = int(row['total']) if row and row['total'] is not None else 0
+            if total_activos > 0:
+                return False
+
+            logger.warning("Instancia configurada sin usuarios activos; se reabre wizard inicial")
+        except Exception as e:
+            logger.error(f"No se pudo validar usuarios activos: {e}")
+            return False
+
+        # Si no hay usuarios activos, forzar re-configuración para crear cuenta válida.
+        business['configured'] = False
+        self.config['business'] = business
+        save_config(self.config, self.config_path)
+        return True
     
     def _setup_keyboard_shortcuts(self):
         """Configura los atajos de teclado de la aplicación"""

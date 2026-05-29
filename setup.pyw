@@ -145,6 +145,17 @@ def source_dir():
 def app_source():
     return os.path.join(source_dir(), "app")
 
+
+def _arg_value(flag: str, default: str = '') -> str:
+    """Obtiene el valor de un argumento en formato --flag valor."""
+    try:
+        idx = sys.argv.index(flag)
+        if idx + 1 < len(sys.argv):
+            return sys.argv[idx + 1]
+    except ValueError:
+        pass
+    return default
+
 def _is_real_python(path):
     """Verifica que el ejecutable sea Python real y no el stub del Microsoft Store.
     El stub de WindowsApps devuelve código de salida distinto de 0 cuando se le pasan args."""
@@ -444,6 +455,59 @@ class Installer:
         except Exception as e:
             self._emit(f"   ⚠ No se pudo registrar: {e}")
         self._refresh_search_index()
+
+
+def _launch_installed_app(install_dir: str):
+    """Lanza la app instalada luego de una actualización automática."""
+    try:
+        vbs = os.path.join(install_dir, "Lanzar TPV Elite.vbs")
+        if os.path.exists(vbs):
+            wscript = os.path.join(os.environ.get("SystemRoot", "C:\\Windows"), "System32", "wscript.exe")
+            subprocess.Popen([wscript, vbs], cwd=install_dir)
+            return
+
+        py = python_exe()
+        pythonw = os.path.join(os.path.dirname(py), "pythonw.exe")
+        if not os.path.exists(pythonw):
+            pythonw = py
+        main = os.path.join(install_dir, "main.py")
+        subprocess.Popen([pythonw, main], cwd=install_dir)
+    except Exception:
+        # Evitar bloquear la actualización por un fallo de relanzamiento.
+        pass
+
+
+def _run_auto_update_mode() -> int:
+    """
+    Modo update automático sin wizard.
+    Uso esperado: setup.exe --auto-update --target <install_dir> [--restart]
+    """
+    target_dir = _arg_value('--target', '').strip()
+    if not target_dir:
+        target_dir = os.path.join(os.path.expanduser('~'), APP_FOLDER)
+
+    opts = {
+        'shortcut_desktop': False,
+        'shortcut_menu': False,
+        'reset_data': False,
+    }
+
+    installer = Installer(target_dir, opts)
+    ok, err = installer.run()
+
+    if not ok:
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            f"No se pudo completar la actualización automática.\\n\\n{err}",
+            "Sistema TPV Elite — Actualización",
+            0x10
+        )
+        return 1
+
+    if '--restart' in sys.argv:
+        _launch_installed_app(target_dir)
+
+    return 0
 
 
 # ─── Wizard UI ───────────────────────────────────────────────────────────────
@@ -1189,6 +1253,9 @@ class SetupWizard(tk.Tk):
 # ─── Entry point ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    if '--auto-update' in sys.argv:
+        sys.exit(_run_auto_update_mode())
+
     # Verificar que existe la carpeta app/
     if not os.path.isdir(app_source()):
         import ctypes

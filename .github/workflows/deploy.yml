@@ -18,5 +18,8 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validate Version Sync
+        run: node scripts/validate-version-sync.mjs
+
       - name: Deploy to Surge
         run: npx surge landing/ tpvelite.surge.sh --token ${{ secrets.SURGE_TOKEN }}

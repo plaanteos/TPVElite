@@ -10,6 +10,8 @@ import queue
 import logging
 import uuid
 import json
+import urllib.error
+import urllib.request
 from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
@@ -24,6 +26,36 @@ TABLAS_SINCRONIZADAS = {
     'pedidos',
     'detalles_pedido',
     'movimientos_inventario',
+}
+
+COLUMNAS_CLOUD = {
+    'usuarios': {
+        'username', 'password_hash', 'nombre', 'apellido', 'email', 'rol',
+        'activo', 'fecha_creacion', 'ultimo_acceso', 'intentos_fallidos',
+    },
+    'productos': {
+        'nombre', 'descripcion', 'categoria', 'precio', 'costo', 'stock',
+        'stock_minimo', 'unidad_medida', 'codigo_barras', 'imagen_url',
+        'proveedor_id', 'activo', 'fecha_creacion', 'fecha_modificacion',
+    },
+    'ventas': {
+        'numero_venta', 'fecha', 'usuario_id', 'cliente_nombre', 'subtotal',
+        'descuento', 'impuestos', 'total', 'metodo_pago', 'estado', 'notas',
+    },
+    'detalles_venta': {
+        'venta_id', 'producto_id', 'cantidad', 'precio_unitario', 'subtotal',
+    },
+    'pedidos': {
+        'numero_pedido', 'fecha', 'usuario_id', 'proveedor', 'subtotal',
+        'impuestos', 'total', 'estado', 'fecha_entrega', 'notas',
+    },
+    'detalles_pedido': {
+        'pedido_id', 'producto_id', 'cantidad', 'precio_unitario', 'subtotal',
+    },
+    'movimientos_inventario': {
+        'producto_id', 'tipo', 'cantidad', 'stock_anterior', 'stock_nuevo',
+        'usuario_id', 'referencia', 'fecha', 'notas',
+    },
 }
 
 _instancia: Optional['CloudSync'] = None
@@ -82,22 +114,80 @@ class CloudSync:
 
     def _iniciar_cliente(self):
         try:
-            from libsql_client import create_client_sync
-            self._client = create_client_sync(
-                url=self.turso_url,
-                auth_token=self.turso_token,
-            )
-            # Verificar conexión
-            self._client.execute("SELECT 1")
+            # Verificar conexión con el endpoint HTTP nativo de Turso.
+            self._http_execute("SELECT 1")
             self._conectado = True
-            logger.info(f"Turso client conectado: {self.turso_url}")
-        except ImportError:
-            logger.warning(
-                "Librería 'libsql-client' no instalada. "
-                "Ejecutá: pip install libsql-client"
-            )
+            logger.info(f"Turso HTTP conectado: {self._http_url()}")
         except Exception as exc:
             logger.error(f"Error al conectar con Turso: {exc}")
+
+    def _http_url(self) -> str:
+        url = self.turso_url
+        if url.startswith('libsql://'):
+            url = 'https://' + url[len('libsql://'):]
+        return url.rstrip('/')
+
+    def _sql_literal(self, value: Any) -> str:
+        if value is None:
+            return 'NULL'
+        if isinstance(value, bool):
+            return '1' if value else '0'
+        if isinstance(value, (int, float)):
+            return str(value)
+        texto = str(value).replace("'", "''")
+        return f"'{texto}'"
+
+    def _render_sql(self, sql: str, args: Optional[List[Any]] = None) -> str:
+        if not args:
+            return sql
+
+        partes = sql.split('?')
+        if len(partes) - 1 != len(args):
+            raise ValueError('Cantidad de argumentos no coincide con placeholders')
+
+        sql_rendered = partes[0]
+        for parte, arg in zip(partes[1:], args):
+            sql_rendered += self._sql_literal(arg) + parte
+        return sql_rendered
+
+    def _http_execute(self, sql: str, args: Optional[List[Any]] = None) -> Dict[str, Any]:
+        sql_rendered = self._render_sql(sql, args)
+        payload: Dict[str, Any] = {
+            'requests': [
+                {
+                    'type': 'execute',
+                    'stmt': {
+                        'sql': sql_rendered,
+                    },
+                }
+            ]
+        }
+
+        request = urllib.request.Request(
+            f"{self._http_url()}/v2/pipeline",
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Authorization': f'Bearer {self.turso_token}',
+                'Content-Type': 'application/json',
+            },
+            method='POST',
+        )
+
+        with urllib.request.urlopen(request, timeout=30) as response:
+            data = json.loads(response.read().decode('utf-8'))
+
+        resultados = data.get('results') or []
+        if not resultados:
+            raise RuntimeError(f"Respuesta vacía de Turso para SQL: {sql[:80]}")
+
+        primer_resultado = resultados[0]
+        if primer_resultado.get('type') != 'ok':
+            raise RuntimeError(f"Respuesta no OK de Turso: {primer_resultado}")
+
+        response_body = primer_resultado.get('response', {})
+        if not isinstance(response_body, dict):
+            return {}
+        return response_body.get('result', response_body)
 
     def _asegurar_tablas(self):
         """Crea las tablas en Turso si no existen — misma estructura SQLite + tenant_id."""
@@ -131,6 +221,7 @@ class CloudSync:
                 unidad_medida TEXT DEFAULT 'unidad',
                 codigo_barras TEXT,
                 imagen_url TEXT,
+                proveedor_id INTEGER,
                 activo     INTEGER DEFAULT 1,
                 fecha_creacion TEXT,
                 fecha_modificacion TEXT,
@@ -172,6 +263,8 @@ class CloudSync:
                 fecha         TEXT,
                 usuario_id    INTEGER,
                 proveedor     TEXT,
+                subtotal      REAL DEFAULT 0,
+                impuestos     REAL DEFAULT 0,
                 total         REAL DEFAULT 0,
                 estado        TEXT DEFAULT 'pendiente',
                 fecha_entrega TEXT,
@@ -208,9 +301,20 @@ class CloudSync:
         ]
         for ddl in ddls:
             try:
-                self._client.execute(ddl)
+                self._http_execute(ddl)
             except Exception as exc:
                 logger.warning(f"DDL omitido (tabla ya existente o error): {exc}")
+
+        migraciones = [
+            "ALTER TABLE productos ADD COLUMN proveedor_id INTEGER",
+            "ALTER TABLE pedidos ADD COLUMN subtotal REAL DEFAULT 0",
+            "ALTER TABLE pedidos ADD COLUMN impuestos REAL DEFAULT 0",
+        ]
+        for sql in migraciones:
+            try:
+                self._http_execute(sql)
+            except Exception as exc:
+                logger.debug(f"Migración cloud omitida: {exc}")
 
     def _iniciar_worker(self):
         hilo = threading.Thread(
@@ -236,7 +340,7 @@ class CloudSync:
                 logger.error(f"Error inesperado en worker Turso: {exc}")
 
     def _procesar(self, op: dict):
-        if not self._client:
+        if not self._conectado:
             return
         tabla  = op['tabla']
         accion = op['accion']
@@ -244,18 +348,19 @@ class CloudSync:
 
         try:
             if accion == 'upsert':
-                columnas     = list(datos.keys())
-                valores      = [datos[c] for c in columnas]
+                columnas_permitidas = COLUMNAS_CLOUD.get(tabla, set())
+                columnas     = ['tenant_id', 'local_id'] + [c for c in datos.keys() if c in columnas_permitidas]
+                valores      = [datos['tenant_id'], datos['local_id']] + [datos[c] for c in datos.keys() if c in columnas_permitidas]
                 placeholders = ', '.join('?' for _ in columnas)
                 cols_sql     = ', '.join(columnas)
                 sql = (
                     f"INSERT OR REPLACE INTO {tabla} ({cols_sql}) "
                     f"VALUES ({placeholders})"
                 )
-                self._client.execute(sql, valores)
+                self._http_execute(sql, valores)
 
             elif accion == 'delete':
-                self._client.execute(
+                self._http_execute(
                     f"DELETE FROM {tabla} WHERE tenant_id = ? AND local_id = ?",
                     [self.tenant_id, datos['local_id']],
                 )
@@ -290,11 +395,13 @@ class CloudSync:
         if not self._conectado:
             return []
         try:
-            rs = self._client.execute(
+            rs = self._http_execute(
                 f"SELECT * FROM {tabla} WHERE tenant_id = ?",
                 [self.tenant_id],
             )
-            return [dict(zip(rs.columns, row)) for row in rs.rows]
+            columnas = rs.get('cols', [])
+            filas = rs.get('rows', [])
+            return [dict(zip([c.get('name') for c in columnas], row)) for row in filas]
         except Exception as exc:
             logger.error(f"Error pull Turso {tabla}: {exc}")
             return []

@@ -20,6 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -778,6 +779,61 @@
       .footer-inner { flex-direction: column; text-align: center; }
       .capture-side-card { width: auto; }
     }
+
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 10, 19, .72);
+      backdrop-filter: blur(6px);
+      z-index: 550;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-modal-backdrop.open { display: flex; }
+
+    .auth-modal {
+      width: min(520px, 100%);
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(17,24,39,.98), rgba(14,21,33,.98));
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .auth-modal h3 {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+      margin-bottom: 10px;
+    }
+
+    .auth-modal p {
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .auth-modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .auth-user-chip {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(16,185,129,.35);
+      background: rgba(16,185,129,.12);
+      border-radius: 12px;
+      font-size: 13px;
+      color: #b9ffe3;
+      display: none;
+    }
+
+    .auth-user-chip.show { display: block; }
   </style>
 </head>
 <body>
@@ -793,7 +849,7 @@
         <li><a href="#funcionalidades">Funcionalidades</a></li>
         <li><a href="#precios">Planes</a></li>
       </ul>
-      <a href="./TPVElite_Setup.exe" download class="btn btn-primary" onclick="trackDownload()">⬇ Descargar</a>
+      <a href="#" class="btn btn-primary js-download-link" data-download-context="nav">⬇ Descargar</a>
     </div>
   </nav>
 
@@ -805,7 +861,7 @@
           <h1 class="hero-title">El punto de venta que ordena tu operación <span class="hero-gradient">sin frenar la caja</span></h1>
           <p class="hero-copy">TPV Elite 3.0 centraliza ventas, stock, pedidos y reportes en una sola app de escritorio para Windows, pensada para vender más rápido y ordenar mejor la operación.</p>
           <div class="hero-actions">
-            <a href="./TPVElite_Setup.exe" download class="btn btn-primary" onclick="trackDownload()">⬇ Descargar gratis</a>
+            <a href="#" class="btn btn-primary js-download-link" data-download-context="hero">⬇ Descargar gratis</a>
             <a href="#captura" class="btn btn-secondary">Ver captura mejorada</a>
           </div>
           <div class="hero-trust">
@@ -977,7 +1033,7 @@
               <li><span class="check">✓</span><span>Reportes básicos</span></li>
               <li><span class="check">✓</span><span>Operación offline</span></li>
             </ul>
-            <a href="./TPVElite_Setup.exe" download class="btn btn-secondary" onclick="trackDownload()">Descargar gratis</a>
+            <a href="#" class="btn btn-secondary js-download-link" data-download-context="plan_starter">Descargar gratis</a>
           </article>
 
           <article class="price-card featured reveal-scale">
@@ -1005,12 +1061,24 @@
         <h2 class="section-title" style="margin-top:20px;">Tu negocio merece una herramienta que se sienta seria desde el primer clic</h2>
         <p class="section-copy">Descarga TPV Elite 3.0 y centraliza ventas, stock, pedidos y reportes en un único flujo de trabajo pensado para el negocio.</p>
         <div class="cta-actions">
-          <a href="./TPVElite_Setup.exe" download class="btn btn-primary" onclick="trackDownload()">⬇ Descargar TPV Elite 3.0</a>
+          <a href="#" class="btn btn-primary js-download-link" data-download-context="cta">⬇ Descargar TPV Elite 3.0</a>
         </div>
         <p class="support-note">Preguntas o demo comercial: <a href="mailto:jesusjcopes@gmail.com" style="color:#A5B4FC;font-weight:700;">jesusjcopes@gmail.com</a></p>
       </div>
     </section>
   </main>
+
+  <div id="auth-modal-backdrop" class="auth-modal-backdrop" aria-hidden="true">
+    <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+      <h3 id="auth-modal-title">Inicia sesión con Google para descargar</h3>
+      <p>Usamos esta validación para habilitar planes y pasarela de pagos en los próximos releases.</p>
+      <div class="auth-modal-actions">
+        <button type="button" id="auth-google-btn" class="btn btn-primary">Continuar con Google</button>
+        <button type="button" id="auth-cancel-btn" class="btn btn-secondary">Cancelar</button>
+      </div>
+      <div id="auth-user-chip" class="auth-user-chip"></div>
+    </div>
+  </div>
 
   <footer>
     <div class="container footer-inner">
@@ -1088,18 +1156,191 @@
     const businessMarkup = businessTypes.map(([icon, label]) => `<div class="business-chip"><span>${icon}</span><span>${label}</span></div>`).join('');
     businessTrack.innerHTML = businessMarkup + businessMarkup;
 
-    function trackDownload() {
+    const GOOGLE_CLIENT_ID = '750768103128-1ocko2b20ppjh835s2dmu7ir2u4ph8qp.apps.googleusercontent.com';
+    const API_BASE = (window.TPV_API_BASE || 'http://localhost:8787').replace(/\/$/, '');
+    const STORAGE_KEY = 'tpvelite-auth-state';
+    let googleTokenClient = null;
+    let pendingDownloadContext = 'landing';
+
+    function getAuthState() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      } catch {
+        return null;
+      }
+    }
+
+    function saveAuthState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function clearAuthState() {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function trackDownload(context = 'landing') {
+      const state = getAuthState();
+      const user = state?.user || {};
       fetch('https://formspree.io/f/xojbelgl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           evento: 'Descarga TPV Elite',
+          origen: context,
+          email: user?.email || '',
+          nombre: user?.name || '',
           fecha: new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }),
           ua: navigator.userAgent.slice(0, 120),
           res: `${screen.width}x${screen.height}`
         })
       }).catch(() => {});
     }
+
+    async function postGoogleTokenToBackend(accessToken, context) {
+      const response = await fetch(`${API_BASE}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken, context })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || 'No se pudo validar Google en el backend');
+      }
+      return data;
+    }
+
+    async function getProtectedDownloadUrl(context) {
+      const state = getAuthState();
+      const sessionToken = state?.sessionToken;
+
+      if (!sessionToken) {
+        throw new Error('Sesión faltante');
+      }
+
+      const response = await fetch(`${API_BASE}/api/download-link?context=${encodeURIComponent(context)}`, {
+        headers: {
+          Authorization: `Bearer ${sessionToken}`
+        }
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok || !data?.downloadUrl) {
+        throw new Error(data?.error || 'No se pudo obtener enlace de descarga');
+      }
+
+      if (String(data.downloadUrl).startsWith('http')) {
+        return data.downloadUrl;
+      }
+      return `${API_BASE}${data.downloadUrl}`;
+    }
+
+    function initGoogleGate() {
+      const waitGoogle = () => {
+        if (!(window.google && google.accounts && google.accounts.oauth2)) {
+          setTimeout(waitGoogle, 150);
+          return;
+        }
+
+        googleTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'openid email profile',
+          callback: async (tokenResponse) => {
+            if (!tokenResponse || !tokenResponse.access_token) {
+              alert('No se pudo validar tu cuenta de Google.');
+              return;
+            }
+
+            try {
+              const backendAuth = await postGoogleTokenToBackend(tokenResponse.access_token, pendingDownloadContext);
+              saveAuthState({
+                user: backendAuth.user,
+                sessionToken: backendAuth.sessionToken,
+                lastLoginAt: new Date().toISOString()
+              });
+
+              closeAuthModal();
+              await triggerInstallerDownload(pendingDownloadContext);
+            } catch (error) {
+              clearAuthState();
+              alert('No se pudo validar tu cuenta en el servidor. Intenta nuevamente.');
+            }
+          },
+          error_callback: () => {
+            alert('Falló el inicio de sesión con Google. Intenta nuevamente.');
+          }
+        });
+      };
+
+      waitGoogle();
+    }
+
+    function openAuthModal() {
+      const backdrop = document.getElementById('auth-modal-backdrop');
+      const chip = document.getElementById('auth-user-chip');
+      const user = getAuthState()?.user;
+
+      if (user?.email) {
+        chip.textContent = `Sesión activa: ${user.email}`;
+        chip.classList.add('show');
+      } else {
+        chip.textContent = '';
+        chip.classList.remove('show');
+      }
+
+      backdrop.classList.add('open');
+      backdrop.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAuthModal() {
+      const backdrop = document.getElementById('auth-modal-backdrop');
+      backdrop.classList.remove('open');
+      backdrop.setAttribute('aria-hidden', 'true');
+    }
+
+    async function triggerInstallerDownload(context) {
+      trackDownload(context);
+      try {
+        const downloadUrl = await getProtectedDownloadUrl(context);
+        window.location.href = downloadUrl;
+      } catch {
+        clearAuthState();
+        openAuthModal();
+      }
+    }
+
+    function requestGoogleAndDownload() {
+      if (!googleTokenClient) {
+        alert('Google Login todavía no está listo. Intenta en 2 segundos.');
+        return;
+      }
+      googleTokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('.js-download-link');
+      if (!link) return;
+
+      event.preventDefault();
+      pendingDownloadContext = link.dataset.downloadContext || 'landing';
+
+      const state = getAuthState();
+      if (state?.sessionToken && state?.user?.email) {
+        triggerInstallerDownload(pendingDownloadContext);
+      } else {
+        openAuthModal();
+      }
+    });
+
+    document.getElementById('auth-google-btn').addEventListener('click', requestGoogleAndDownload);
+    document.getElementById('auth-cancel-btn').addEventListener('click', closeAuthModal);
+    document.getElementById('auth-modal-backdrop').addEventListener('click', (event) => {
+      if (event.target.id === 'auth-modal-backdrop') {
+        closeAuthModal();
+      }
+    });
+
+    initGoogleGate();
 
     function checkUpdates() {
       fetch('./version.json')
@@ -1136,15 +1377,13 @@
       banner.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center;font-size:14px;font-weight:700;">
           <span>✨ Nueva versión ${version} disponible — ${String(changelog).slice(0, 80)}</span>
-          <a href="./TPVElite_Setup.exe" download style="padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.22);font-size:13px;" onclick="trackDownload()">Descargar ahora</a>
+          <a href="#" class="js-download-link" data-download-context="update_banner" style="padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.22);font-size:13px;">Descargar ahora</a>
           <button type="button" style="padding:7px 12px;border-radius:999px;border:0;background:rgba(0,0,0,.16);color:#fff;cursor:pointer;" onclick="document.getElementById('update-banner').remove()">Cerrar</button>
         </div>
       `;
       document.body.appendChild(banner);
     }
 
-    window.addEventListener('load', checkUpdates);
-    setInterval(checkUpdates, 5 * 60 * 1000);
   </script>
 </body>
 </html>
