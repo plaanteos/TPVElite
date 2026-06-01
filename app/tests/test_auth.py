@@ -92,7 +92,7 @@ class TestAuthService:
         auth_service.login("admin", "admin123")
         usuario_id = auth_service.current_user.id
         old_password = "admin123"
-        new_password = "nuevo_password_123"
+        new_password = "Nuevo_password_123!"
         
         # Act
         success, message = auth_service.cambiar_password(
@@ -115,7 +115,7 @@ class TestAuthService:
         auth_service.login("admin", "admin123")
         usuario_id = auth_service.current_user.id
         old_password = "password_incorrecto"
-        new_password = "nuevo_password_123"
+        new_password = "Nuevo_password_123!"
         
         # Act
         success, message = auth_service.cambiar_password(
@@ -131,7 +131,7 @@ class TestAuthService:
         # Arrange
         usuario_id = 9999  # ID que no existe
         old_password = "cualquier_password"
-        new_password = "nuevo_password"
+        new_password = "Nuevo_password_123!"
         
         # Act
         success, message = auth_service.cambiar_password(
@@ -192,10 +192,23 @@ class TestAuthService:
             success, _, _ = auth_service.login("admin", "password_incorrecto")
             assert success is False
         
-        # Verificar que después de intentos fallidos, el correcto funciona
+        # Verificar bloqueo temporal después del tercer intento
         success, message, user = auth_service.login("admin", "admin123")
-        assert success is True
-        assert user is not None
+        assert success is False
+        assert "bloqueado temporalmente" in message.lower()
+        assert user is None
+
+    def test_cambiar_password_fallido_por_complejidad(self, auth_service):
+        """Test: Rechaza nueva contraseña sin complejidad mínima"""
+        auth_service.login("admin", "admin123")
+        usuario_id = auth_service.current_user.id
+
+        success, message = auth_service.cambiar_password(
+            usuario_id, "admin123", "solominusculas1"
+        )
+
+        assert success is False
+        assert "mayúscula" in message.lower() or "símbolo" in message.lower()
     
     def test_login_campos_vacios(self, auth_service):
         """Test: Login con campos vacíos"""
@@ -253,7 +266,7 @@ class TestAuthServiceIntegration:
         
         # 2. Cambiar password
         success2, msg2 = auth_service.cambiar_password(
-            user1.id, "admin123", "nuevo_pass_456"
+            user1.id, "admin123", "Nuevo_pass_456!"
         )
         assert success2 is True
         
@@ -266,7 +279,7 @@ class TestAuthServiceIntegration:
         assert success3 is False
         
         # 5. Login con nueva password (debe funcionar)
-        success4, msg4, user4 = auth_service.login("admin", "nuevo_pass_456")
+        success4, msg4, user4 = auth_service.login("admin", "Nuevo_pass_456!")
         assert success4 is True
         assert auth_service.current_user is not None
     

@@ -97,15 +97,24 @@ Nota operativa:
 - [ ] Refactorizar app/main.py por módulos (UI, casos de uso, acceso a datos).
 - [ ] Reemplazar except/pass por manejo de errores explícito y trazable.
 - [ ] Unificar roles de negocio en todas las capas.
-- [ ] Endurecer política de contraseñas (mínimo, complejidad, bloqueo temporal).
-- [ ] Agregar controles de rate limit y hardening básico al backend.
+- [x] Endurecer política de contraseñas (mínimo, complejidad, bloqueo temporal).
+- [x] Agregar controles de rate limit y hardening básico al backend.
 
 ### P2 (madurez productiva)
-- [ ] Pipeline CI integral: lint + test + build smoke + validaciones.
-- [ ] Estrategia de migraciones versionadas con rollback.
+- [x] Pipeline CI integral: lint + test + build smoke + validaciones.
+- [x] Estrategia de migraciones versionadas con rollback.
 - [ ] Observabilidad mínima: logs estructurados, métricas y alertas.
-- [ ] Runbook operativo: incidentes, recuperación, rollback y rotación de secretos.
-- [ ] Tests E2E de flujos críticos (login, venta, stock, reportes, actualización).
+- [x] Runbook operativo: incidentes, recuperación, rollback y rotación de secretos.
+- [x] Tests E2E de flujos críticos (login, venta, stock, reportes, actualización).
+
+Evidencia de avances P1/P2 (2026-05-29):
+- Política de contraseñas endurecida con validación de complejidad y bloqueo temporal por intentos fallidos (`app/services.py`, `app/database.py`, `app/models.py`, `app/main.py`).
+- Backend con hardening base: `rate limit` por IP, `request-id`, cabeceras de seguridad y logging estructurado (`backend/server.js`).
+- Pipeline CI reforzado con validaciones de secretos, `flake8` crítico, `pytest` y smoke de compilación (`.github/workflows/tests.yml`).
+- Estrategia de migraciones documentada (`ESTRATEGIA_MIGRACIONES_VERSIONADAS.md`).
+- Runbook operativo incorporado (`RUNBOOK_OPERATIVO.md`).
+- Suite crítica validada en verde: `pytest app/tests/test_auth.py app/tests/test_e2e_flujos.py -q` => 22 passed.
+- Tests E2E cubren login, venta, stock, bloqueo temporal, actualización de producto y reporte de ventas en rango de fechas (`app/tests/test_e2e_flujos.py`).
 
 ## 6. Condición de salida a producción
 

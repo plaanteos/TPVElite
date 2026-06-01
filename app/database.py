@@ -62,6 +62,7 @@ class DatabaseManager:
             ("pedidos", "impuestos", "ALTER TABLE pedidos ADD COLUMN impuestos REAL DEFAULT 0"),
             ("productos", "proveedor_id", "ALTER TABLE productos ADD COLUMN proveedor_id INTEGER REFERENCES proveedores(id)"),
             ("usuarios", "must_change_password", "ALTER TABLE usuarios ADD COLUMN must_change_password INTEGER DEFAULT 0"),
+            ("usuarios", "bloqueado_hasta", "ALTER TABLE usuarios ADD COLUMN bloqueado_hasta TIMESTAMP"),
         ]
         for table, column, sql in migrations:
             cursor.execute(f"PRAGMA table_info({table})")
@@ -143,6 +144,7 @@ class DatabaseManager:
                     rol TEXT NOT NULL DEFAULT 'cajero',
                     activo INTEGER DEFAULT 1,
                     must_change_password INTEGER DEFAULT 0,
+                    bloqueado_hasta TIMESTAMP,
                     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     ultimo_acceso TIMESTAMP,
                     intentos_fallidos INTEGER DEFAULT 0,

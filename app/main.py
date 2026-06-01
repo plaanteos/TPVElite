@@ -367,8 +367,8 @@ class AnimationHelper:
                     widget.after(delay, animate)
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación fade_in omitida: {exc}")
     
     @staticmethod
     def fade_out(widget, duration=300, steps=20, callback=None):
@@ -388,7 +388,8 @@ class AnimationHelper:
                     callback()
             
             animate()
-        except:
+        except Exception as exc:
+            logger.debug(f"Animación fade_out omitida: {exc}")
             if callback:
                 callback()
     
@@ -427,8 +428,8 @@ class AnimationHelper:
                     widget.after(delay, lambda: animate(step + 1))
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación slide_in omitida: {exc}")
     
     @staticmethod
     def smooth_scroll(canvas, target_y, duration=500):
@@ -447,8 +448,8 @@ class AnimationHelper:
                     canvas.after(delay, lambda: animate(step + 1))
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación smooth_scroll omitida: {exc}")
     
     @staticmethod
     def _ease_in_out_cubic(t):
@@ -481,8 +482,8 @@ class AnimationHelper:
                     widget.after(delay, lambda: animate(step + 1))
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación pulse omitida: {exc}")
     
     @staticmethod
     def shake(widget, duration=500):
@@ -502,8 +503,8 @@ class AnimationHelper:
                     widget.place(x=original_x)
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación shake omitida: {exc}")
     
     @staticmethod
     def bounce_in(widget, duration=600):
@@ -523,8 +524,8 @@ class AnimationHelper:
                     widget.after(delay, lambda: animate(step + 1))
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación bounce_in omitida: {exc}")
 
 
 class ToastNotification:
@@ -634,8 +635,8 @@ class ToastNotification:
                     self.parent.after(delay, lambda: animate(step + 1))
             
             animate()
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"Animación toast entrada omitida: {exc}")
     
     def _slide_out(self, callback):
         """Animación de salida deslizante"""
@@ -658,7 +659,8 @@ class ToastNotification:
                     callback()
             
             animate()
-        except:
+        except Exception as exc:
+            logger.debug(f"Animación toast salida omitida: {exc}")
             if callback:
                 callback()
     
@@ -672,8 +674,8 @@ class ToastNotification:
                     ToastNotification._active_toasts.remove(self)
                 # Reposicionar toasts restantes
                 self._reposition_toasts()
-            except:
-                pass
+            except Exception as exc:
+                logger.debug(f"No se pudo destruir toast correctamente: {exc}")
         
         self._slide_out(destroy)
     
@@ -685,8 +687,8 @@ class ToastNotification:
                 if toast.toast_frame and toast.toast_frame.winfo_exists():
                     toast.toast_frame.place(y=y_offset)
                     y_offset += toast.toast_frame.winfo_height() + ToastNotification._toast_spacing
-        except:
-            pass
+        except Exception as exc:
+            logger.debug(f"No se pudieron reposicionar toasts: {exc}")
 
 
 class ModernButton(tk.Button):
@@ -2614,8 +2616,9 @@ class ModernTPV:
                 if not password:
                     messagebox.showwarning("Advertencia", "Ingresá una contraseña.")
                     return
-                if len(password) < 8:
-                    messagebox.showwarning("Advertencia", "La contraseña debe tener al menos 8 caracteres.")
+                es_segura, motivo = self.auth_service.validar_password_segura(password)
+                if not es_segura:
+                    messagebox.showwarning("Advertencia", motivo)
                     return
                 if password != password2:
                     messagebox.showwarning("Advertencia", "Las contraseñas no coinciden.")
@@ -7867,8 +7870,9 @@ Python: {sys.version.split()[0]}
                 messagebox.showerror("Error", "Las contraseñas no coinciden")
                 return
             
-            if len(new) < 8:
-                messagebox.showerror("Error", "La contraseña debe tener al menos 8 caracteres")
+            es_segura, motivo = self.auth_service.validar_password_segura(new)
+            if not es_segura:
+                messagebox.showerror("Error", motivo)
                 return
             
             user = self.auth_service.current_user
@@ -8145,7 +8149,7 @@ Python: {sys.version.split()[0]}
                 # Formatear rol
                 rol_display = {
                     'admin': 'Administrador',
-                    'vendedor': 'Vendedor',
+                    'cajero': 'Cajero',
                     'supervisor': 'Supervisor'
                 }.get(user['rol'], user['rol'])
                 

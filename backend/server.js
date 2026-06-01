@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import crypto from 'node:crypto';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -34,6 +35,66 @@ if (!ALLOWED_ORIGINS.length) {
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
+
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 10 * 60 * 1000);
+const RATE_LIMIT_AUTH_MAX = Number(process.env.RATE_LIMIT_AUTH_MAX || 20);
+const rateLimitStore = new Map();
+
+function getClientIp(req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return forwarded || req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+function createIpRateLimiter(maxRequests, windowMs) {
+  return (req, res, next) => {
+    const ip = getClientIp(req);
+    const now = Date.now();
+    const key = `${req.path}:${ip}`;
+    const current = rateLimitStore.get(key);
+
+    if (!current || now > current.resetAt) {
+      rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+
+    if (current.count >= maxRequests) {
+      return res.status(429).json({ ok: false, error: 'Rate limit excedido, intente más tarde' });
+    }
+
+    current.count += 1;
+    rateLimitStore.set(key, current);
+    return next();
+  };
+}
+
+app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
+  res.setHeader('X-Request-Id', requestId);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  next();
+});
+
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.on('finish', () => {
+    const payload = {
+      level: 'info',
+      requestId: req.requestId,
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      durationMs: Date.now() - startedAt,
+      ip: getClientIp(req),
+      timestamp: new Date().toISOString(),
+    };
+    console.log(JSON.stringify(payload));
+  });
+  next();
+});
 
 app.use(cors({
   origin(origin, callback) {
@@ -113,7 +174,7 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'tpvelite-auth-backend' });
 });
 
-app.post('/api/auth/google', async (req, res) => {
+app.post('/api/auth/google', createIpRateLimiter(RATE_LIMIT_AUTH_MAX, RATE_LIMIT_WINDOW_MS), async (req, res) => {
   try {
     const accessToken = String(req.body?.accessToken || '').trim();
     const context = String(req.body?.context || 'landing').trim();
@@ -165,7 +226,7 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-app.get('/api/download-link', (req, res) => {
+app.get('/api/download-link', createIpRateLimiter(RATE_LIMIT_AUTH_MAX, RATE_LIMIT_WINDOW_MS), (req, res) => {
   try {
     const authHeader = String(req.headers.authorization || '');
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';

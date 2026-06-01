@@ -62,7 +62,7 @@ def producto_service(db_manager):
 @pytest.fixture
 def venta_service(db_manager):
     """Fixture que proporciona un VentaService configurado"""
-    return VentaService(db_manager)
+    return VentaService(db_manager, ProductoService(db_manager))
 
 
 @pytest.fixture
@@ -105,6 +105,7 @@ def _create_test_schema(db: DatabaseManager):
             rol TEXT NOT NULL DEFAULT 'cajero',
             activo INTEGER DEFAULT 1,
             must_change_password INTEGER DEFAULT 0,
+            bloqueado_hasta TIMESTAMP,
             fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             ultimo_acceso TIMESTAMP,
             intentos_fallidos INTEGER DEFAULT 0
@@ -138,11 +139,14 @@ def _create_test_schema(db: DatabaseManager):
             numero_venta TEXT UNIQUE NOT NULL,
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             usuario_id INTEGER NOT NULL,
+            cliente_nombre TEXT,
             subtotal REAL NOT NULL,
+            descuento REAL DEFAULT 0,
             impuestos REAL NOT NULL,
             total REAL NOT NULL,
             metodo_pago TEXT NOT NULL,
             estado TEXT DEFAULT 'completada',
+            notas TEXT,
             FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
         )
     """)
@@ -224,6 +228,18 @@ def _create_test_schema(db: DatabaseManager):
             subtotal REAL NOT NULL,
             FOREIGN KEY (pedido_id) REFERENCES pedidos (id),
             FOREIGN KEY (producto_id) REFERENCES productos (id)
+        )
+    """)
+
+    # Tabla sesiones
+    db.execute_query("""
+        CREATE TABLE IF NOT EXISTS sesiones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER NOT NULL,
+            fecha_inicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            fecha_fin TIMESTAMP,
+            activa INTEGER DEFAULT 1,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
         )
     """)
 

@@ -6,8 +6,9 @@ Descripción: Capa de servicios con lógica de negocio
 """
 
 from typing import List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
+import re
 
 from database import DatabaseManager
 from models import Usuario, Producto, Venta, DetalleVenta, Pedido, DetallePedido, MovimientoInventario
@@ -23,6 +24,21 @@ class AuthService:
         self.db = db
         self.current_user: Optional[Usuario] = None
         self.current_session_id: Optional[int] = None
+
+    @staticmethod
+    def validar_password_segura(password: str) -> Tuple[bool, str]:
+        """Valida política mínima de seguridad para contraseñas."""
+        if len(password) < 8:
+            return False, "La contraseña debe tener al menos 8 caracteres"
+        if not re.search(r"[A-Z]", password):
+            return False, "La contraseña debe incluir al menos una mayúscula"
+        if not re.search(r"[a-z]", password):
+            return False, "La contraseña debe incluir al menos una minúscula"
+        if not re.search(r"\d", password):
+            return False, "La contraseña debe incluir al menos un número"
+        if not re.search(r"[^A-Za-z0-9]", password):
+            return False, "La contraseña debe incluir al menos un símbolo"
+        return True, "OK"
     
     def login(self, username: str, password: str) -> Tuple[bool, str, Optional[Usuario]]:
         """
@@ -61,24 +77,41 @@ class AuthService:
                 activo=bool(row['activo']),
                 intentos_fallidos=row['intentos_fallidos'],
                 must_change_password=bool(row['must_change_password']) if 'must_change_password' in row.keys() else False,
+                bloqueado_hasta=row['bloqueado_hasta'] if 'bloqueado_hasta' in row.keys() else None,
             )
+
+            # Bloqueo temporal por seguridad.
+            if usuario.bloqueado_hasta:
+                try:
+                    bloqueado_hasta = datetime.fromisoformat(str(usuario.bloqueado_hasta))
+                except ValueError:
+                    bloqueado_hasta = None
+
+                if bloqueado_hasta and datetime.now() < bloqueado_hasta:
+                    return False, (
+                        f"Usuario bloqueado temporalmente hasta {bloqueado_hasta.strftime('%H:%M')}"
+                    ), None
             
             # Verificar contraseña
             if not usuario.verificar_password(password):
-                # Incrementar intentos fallidos
-                self.db.execute_query(
-                    "UPDATE usuarios SET intentos_fallidos = intentos_fallidos + 1 WHERE id = ?",
-                    (usuario.id,)
-                )
-                
-                # Bloquear usuario si supera 3 intentos
-                if usuario.intentos_fallidos >= 2:  # 3er intento
+                intentos_actualizados = usuario.intentos_fallidos + 1
+
+                # Bloqueo temporal de 15 minutos al 3er intento fallido.
+                if intentos_actualizados >= 3:
+                    bloqueo_hasta = datetime.now() + timedelta(minutes=15)
                     self.db.execute_query(
-                        "UPDATE usuarios SET activo = 0 WHERE id = ?",
-                        (usuario.id,)
+                        "UPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = ? WHERE id = ?",
+                        (bloqueo_hasta, usuario.id)
                     )
-                    logger.warning(f"Usuario '{username}' bloqueado por múltiples intentos fallidos")
-                    return False, "Usuario bloqueado por múltiples intentos fallidos", None
+                    logger.warning(f"Usuario '{username}' bloqueado temporalmente por intentos fallidos")
+                    return False, (
+                        f"Usuario bloqueado temporalmente hasta {bloqueo_hasta.strftime('%H:%M')}"
+                    ), None
+
+                self.db.execute_query(
+                    "UPDATE usuarios SET intentos_fallidos = ? WHERE id = ?",
+                    (intentos_actualizados, usuario.id)
+                )
                 
                 logger.warning(f"Intento de login fallido: contraseña incorrecta para '{username}'")
                 return False, "Usuario o contraseña incorrectos", None
@@ -97,7 +130,8 @@ class AuthService:
             self.db.execute_query(
                 """UPDATE usuarios SET 
                    ultimo_acceso = ?, 
-                   intentos_fallidos = 0 
+                         intentos_fallidos = 0,
+                         bloqueado_hasta = NULL 
                    WHERE id = ?""",
                 (datetime.now(), usuario.id)
             )
@@ -138,9 +172,6 @@ class AuthService:
             if not password_actual or not password_nueva:
                 return False, "La contraseña actual y la nueva son obligatorias"
 
-            if len(password_nueva) < 8:
-                return False, "La nueva contraseña debe tener al menos 8 caracteres"
-
             row = self.db.fetch_one("SELECT * FROM usuarios WHERE id = ? AND activo = 1", (usuario_id,))
             if not row:
                 return False, "Usuario no encontrado"
@@ -160,6 +191,10 @@ class AuthService:
 
             if not usuario.verificar_password(password_actual):
                 return False, "La contraseña actual es incorrecta"
+
+            es_segura, motivo = self.validar_password_segura(password_nueva)
+            if not es_segura:
+                return False, motivo
 
             nuevo_hash = Usuario.hash_password(password_nueva)
             success = self.db.execute_query(

@@ -26,6 +26,7 @@ class Usuario:
     rol: str = "cajero"
     activo: bool = True
     must_change_password: bool = False
+    bloqueado_hasta: Optional[datetime] = None
     fecha_creacion: Optional[datetime] = None
     ultimo_acceso: Optional[datetime] = None
     intentos_fallidos: int = 0

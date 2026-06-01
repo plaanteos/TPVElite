@@ -1,4 +1,4 @@
-name: Python Tests
+name: Quality Gate
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - '.github/workflows/tests.yml'
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,5 +30,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Validate secrets baseline
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          cfg = Path('config.json')
+          data = json.loads(cfg.read_text(encoding='utf-8'))
+          token = data.get('cloud', {}).get('turso_token', '')
+          if token:
+              raise SystemExit('config.json no debe incluir turso_token en texto plano')
+          print('OK: config.json sin token embebido')
+          PY
+
+      - name: Lint (critical)
+        run: |
+          python -m pip install flake8
+          flake8 . --exclude tests,__pycache__,build,dist,.venv --count --select=E9,F63,F7,F82 --show-source --statistics
+
       - name: Run pytest
         run: pytest tests -q
+
+      - name: Build smoke (compile)
+        run: |
+          python -m py_compile main.py services.py database.py models.py utils.py cloud_sync.py
