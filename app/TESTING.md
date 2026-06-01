@@ -170,7 +170,7 @@ markers =
 ### Datos de prueba:
 
 Cada test recibe una base de datos limpia con:
-- 2 usuarios: `admin` (admin123) y `vendedor1` (vendedor123)
+- 2 usuarios de prueba: `admin` (admin123) y `vendedor1` (vendedor123, rol `cajero`)
 - 5 productos de ejemplo
 - 2 proveedores de ejemplo
 
@@ -203,6 +203,8 @@ def test_login(auth_service, test_user):
     success, message, usuario = auth_service.login("admin", "admin123")
     assert usuario.username == test_user.username
 ```
+
+Nota: estas credenciales existen solo en la base de datos temporal de tests. En runtime real no hay credenciales por defecto.
 
 ### 3. Tests Descriptivos
 

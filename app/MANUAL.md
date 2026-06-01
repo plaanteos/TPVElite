@@ -37,12 +37,13 @@ Bienvenido al Sistema TPV - Heladería Profesional, una solución completa para 
 
 ### Primera Vez
 
-Al iniciar la aplicación por primera vez, use estas credenciales:
+Al iniciar la aplicación por primera vez, complete el wizard inicial:
 
-- **Usuario:** admin
-- **Contraseña:** admin123
+- Cree el usuario administrador.
+- Defina una contraseña segura (mínimo 8 caracteres).
+- No existen credenciales por defecto.
 
-⚠️ **IMPORTANTE:** Cambie la contraseña inmediatamente después del primer inicio.
+⚠️ **IMPORTANTE:** Las cuentas legacy deben cambiar su contraseña al iniciar sesión.
 
 ### Recuperar Contraseña
 

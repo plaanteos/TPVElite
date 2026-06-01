@@ -27,6 +27,9 @@ if (!GOOGLE_CLIENT_ID) {
 if (!SESSION_SECRET || SESSION_SECRET.length < 20) {
   console.warn('SESSION_SECRET debería tener al menos 20 caracteres.');
 }
+if (!ALLOWED_ORIGINS.length) {
+  console.warn('ALLOWED_ORIGINS no está configurado. CORS bloqueará solicitudes de navegador por seguridad.');
+}
 
 const app = express();
 app.disable('x-powered-by');
@@ -35,7 +38,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cors({
   origin(origin, callback) {
     if (!origin) return callback(null, true);
-    if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(origin)) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Origen no permitido por CORS'));

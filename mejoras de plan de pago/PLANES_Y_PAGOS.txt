@@ -52,6 +52,7 @@ Entrar al sistema
 Al vencer el trial:
     → Elegir Plan Básico (USD 10/mes)
     → Elegir Plan PRO    (USD 20/mes)
+   → Elegir Plan SUPER  (USD 35/mes)
     → No pagar → cuenta suspendida (datos retenidos 30 días)
    ↓
 Pasarela de pago (MercadoPago)
@@ -103,12 +104,12 @@ Pensado para kioscos, minimercados, almacenes, heladerías y pequeños locales.
 
 ### Plan PRO — USD 20 / mes
 
-Pensado para supermercados, cadenas, negocios medianos y empresas.
+Pensado para negocios medianos en crecimiento (no cadena compleja).
 
 #### Límites operativos
-- Sucursales ilimitadas
-- Empleados ilimitados
-- Productos ilimitados
+- Hasta 3 sucursales
+- Hasta 25 empleados
+- Hasta 20.000 productos
 
 #### Incluye todo el Plan Básico, más
 - Dashboard inteligente
@@ -116,10 +117,36 @@ Pensado para supermercados, cadenas, negocios medianos y empresas.
 - Historial avanzado
 - Exportación Excel/PDF
 - Roles y permisos avanzados
-- Estadísticas avanzadas
 - Backups premium
 - Soporte prioritario
-- Acceso a futuras integraciones
+
+#### No incluye
+- Multi-sucursal avanzada (transferencias entre depósitos/sucursales)
+- Motor de promociones complejas (combos, 2x1 avanzado, reglas por sucursal)
+- Fidelización avanzada (puntos/cupones segmentados)
+- Analítica corporativa consolidada por cadena
+
+---
+
+### Plan SUPER — USD 35 / mes
+
+Pensado para supermercados, cadenas comerciales y operación multi-sucursal avanzada.
+
+#### Límites operativos
+- Sucursales ilimitadas
+- Empleados ilimitados
+- Productos ilimitados
+
+#### Incluye todo el Plan PRO, más
+- Multi-sucursal avanzada con transferencias y trazabilidad
+- Precios por sucursal/lista y vigencia
+- Motor de promociones complejas
+- Fidelización avanzada (puntos, cupones, segmentación)
+- Reportería consolidada por cadena y por sucursal
+- Soporte premium
+
+#### Nota de alcance
+- Este plan no implica pasarela de pagos del POS como requisito funcional del core de la app.
 
 ---
 
@@ -132,3 +159,4 @@ Pensado para supermercados, cadenas, negocios medianos y empresas.
 - [ ] Página de planes y precios en landing (`/pricing`)
 - [ ] Bloqueo de acceso al vencer el trial sin suscripción activa
 - [ ] Flujo de upgrade de Básico a PRO
+- [ ] Flujo de upgrade de PRO a SUPER

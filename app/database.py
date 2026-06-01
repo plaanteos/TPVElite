@@ -61,6 +61,7 @@ class DatabaseManager:
             ("pedidos", "subtotal", "ALTER TABLE pedidos ADD COLUMN subtotal REAL DEFAULT 0"),
             ("pedidos", "impuestos", "ALTER TABLE pedidos ADD COLUMN impuestos REAL DEFAULT 0"),
             ("productos", "proveedor_id", "ALTER TABLE productos ADD COLUMN proveedor_id INTEGER REFERENCES proveedores(id)"),
+            ("usuarios", "must_change_password", "ALTER TABLE usuarios ADD COLUMN must_change_password INTEGER DEFAULT 0"),
         ]
         for table, column, sql in migrations:
             cursor.execute(f"PRAGMA table_info({table})")
@@ -96,6 +97,20 @@ class DatabaseManager:
             except sqlite3.Error as e:
                 logger.warning(f"Migración omitida tabla proveedores: {e}")
 
+        # Forzar cambio de contraseña a cuentas legacy SHA-256.
+        try:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET must_change_password = 1
+                WHERE password_hash NOT LIKE '$2a$%'
+                  AND password_hash NOT LIKE '$2b$%'
+                """
+            )
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.warning(f"No se pudo marcar cuentas legacy para cambio obligatorio de contraseña: {e}")
+
 
     def _get_connection(self) -> sqlite3.Connection:
         """Obtiene una conexión thread-safe"""
@@ -127,11 +142,13 @@ class DatabaseManager:
                     email TEXT UNIQUE,
                     rol TEXT NOT NULL DEFAULT 'cajero',
                     activo INTEGER DEFAULT 1,
+                    must_change_password INTEGER DEFAULT 0,
                     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     ultimo_acceso TIMESTAMP,
                     intentos_fallidos INTEGER DEFAULT 0,
                     CHECK (rol IN ('admin', 'supervisor', 'cajero')),
-                    CHECK (activo IN (0, 1))
+                    CHECK (activo IN (0, 1)),
+                    CHECK (must_change_password IN (0, 1))
                 )
             ''')
             
@@ -305,28 +322,19 @@ class DatabaseManager:
             raise
     
     def _create_default_admin(self):
-        """Crea un usuario administrador por defecto"""
-        import hashlib
-        
-        username = "admin"
-        password = "admin123"
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
-        
+        """No crea credenciales por defecto por razones de seguridad."""
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
-            
-            # Verificar si ya existe el admin
-            cursor.execute("SELECT id FROM usuarios WHERE username = ?", (username,))
-            if cursor.fetchone() is None:
-                cursor.execute('''
-                    INSERT INTO usuarios (username, password_hash, nombre, apellido, rol, activo)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (username, password_hash, "Administrador", "Sistema", "admin", 1))
-                conn.commit()
-                logger.info("Usuario administrador creado correctamente")
+            cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE activo = 1")
+            row = cursor.fetchone()
+            if row and row['total'] == 0:
+                logger.warning(
+                    "No hay usuarios activos en la base de datos. "
+                    "Ejecute el wizard inicial para crear la cuenta administradora."
+                )
         except sqlite3.Error as e:
-            logger.error(f"Error al crear usuario admin: {e}")
+            logger.error(f"Error al validar usuarios iniciales: {e}")
     
     def execute_query(self, query: str, params: tuple = ()) -> bool:
         """

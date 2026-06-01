@@ -36,6 +36,9 @@ class AuthService:
             (éxito, mensaje, usuario)
         """
         try:
+            if not username or not password:
+                return False, "Usuario y contraseña son obligatorios", None
+
             # Buscar usuario
             row = self.db.fetch_one(
                 "SELECT * FROM usuarios WHERE username = ? AND activo = 1",
@@ -56,7 +59,8 @@ class AuthService:
                 email=row['email'],
                 rol=row['rol'],
                 activo=bool(row['activo']),
-                intentos_fallidos=row['intentos_fallidos']
+                intentos_fallidos=row['intentos_fallidos'],
+                must_change_password=bool(row['must_change_password']) if 'must_change_password' in row.keys() else False,
             )
             
             # Verificar contraseña
@@ -78,6 +82,16 @@ class AuthService:
                 
                 logger.warning(f"Intento de login fallido: contraseña incorrecta para '{username}'")
                 return False, "Usuario o contraseña incorrectos", None
+
+            # Si el usuario aún tiene hash legacy, migrar en caliente y exigir cambio de clave.
+            if not (usuario.password_hash.startswith('$2b$') or usuario.password_hash.startswith('$2a$')):
+                nuevo_hash = Usuario.hash_password(password)
+                self.db.execute_query(
+                    "UPDATE usuarios SET password_hash = ?, must_change_password = 1 WHERE id = ?",
+                    (nuevo_hash, usuario.id)
+                )
+                usuario.password_hash = nuevo_hash
+                usuario.must_change_password = True
             
             # Login exitoso
             self.db.execute_query(
@@ -117,6 +131,53 @@ class AuthService:
         
         self.current_user = None
         self.current_session_id = None
+
+    def cambiar_password(self, usuario_id: int, password_actual: str, password_nueva: str) -> Tuple[bool, str]:
+        """Cambia la contraseña del usuario y limpia el flag de cambio obligatorio."""
+        try:
+            if not password_actual or not password_nueva:
+                return False, "La contraseña actual y la nueva son obligatorias"
+
+            if len(password_nueva) < 8:
+                return False, "La nueva contraseña debe tener al menos 8 caracteres"
+
+            row = self.db.fetch_one("SELECT * FROM usuarios WHERE id = ? AND activo = 1", (usuario_id,))
+            if not row:
+                return False, "Usuario no encontrado"
+
+            usuario = Usuario(
+                id=row['id'],
+                username=row['username'],
+                password_hash=row['password_hash'],
+                nombre=row['nombre'],
+                apellido=row['apellido'],
+                email=row['email'],
+                rol=row['rol'],
+                activo=bool(row['activo']),
+                intentos_fallidos=row['intentos_fallidos'],
+                must_change_password=bool(row['must_change_password']) if 'must_change_password' in row.keys() else False,
+            )
+
+            if not usuario.verificar_password(password_actual):
+                return False, "La contraseña actual es incorrecta"
+
+            nuevo_hash = Usuario.hash_password(password_nueva)
+            success = self.db.execute_query(
+                "UPDATE usuarios SET password_hash = ?, must_change_password = 0 WHERE id = ?",
+                (nuevo_hash, usuario_id)
+            )
+
+            if not success:
+                return False, "No se pudo actualizar la contraseña"
+
+            if self.current_user and self.current_user.id == usuario_id:
+                self.current_user.password_hash = nuevo_hash
+                self.current_user.must_change_password = False
+
+            return True, "Contraseña actualizada correctamente"
+        except Exception as e:
+            logger.error(f"Error al cambiar contraseña: {e}")
+            return False, "No se pudo actualizar la contraseña"
     
     def has_permission(self, required_role: str) -> bool:
         """
@@ -335,7 +396,7 @@ class ProductoService:
                  (nuevo_stock, datetime.now(), producto_id)),
                 ("""INSERT INTO movimientos_inventario
                     (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id, 
-                     referencia, fecha, motivo)
+                     referencia, fecha, notas)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                  (producto_id, tipo, abs(cantidad), stock_actual, nuevo_stock, usuario_id,
                   referencia, datetime.now(), notas))

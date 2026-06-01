@@ -103,12 +103,12 @@ python main.py
 
 ### Primer Inicio
 
-Al iniciar la aplicación por primera vez, use las siguientes credenciales:
+Al iniciar la aplicación por primera vez, complete el wizard de configuración.
 
-- **Usuario:** `admin`
-- **Contraseña:** `admin123`
+- Cree su usuario administrador y contraseña segura (mínimo 8 caracteres).
+- No existen credenciales por defecto.
 
-**⚠️ IMPORTANTE:** Cambie la contraseña inmediatamente después del primer inicio.
+**⚠️ IMPORTANTE:** Si el sistema detecta una contraseña legacy, forzará el cambio al iniciar sesión.
 
 ### Navegación
 

@@ -167,7 +167,7 @@ class TestProductoService:
         # Act
         success, message = producto_service.ajustar_stock(
             producto_id,
-            tipo='entrada',
+            tipo='compra',
             cantidad=cantidad,
             usuario_id=test_user.id,
             notas='Test de entrada'
@@ -190,8 +190,8 @@ class TestProductoService:
         # Act
         success, message = producto_service.ajustar_stock(
             producto_id,
-            tipo='salida',
-            cantidad=cantidad,
+            tipo='venta',
+            cantidad=-cantidad,
             usuario_id=test_user.id,
             notas='Test de salida'
         )
@@ -213,8 +213,8 @@ class TestProductoService:
         # Act
         success, message = producto_service.ajustar_stock(
             producto_id,
-            tipo='salida',
-            cantidad=cantidad,
+            tipo='venta',
+            cantidad=-cantidad,
             usuario_id=test_user.id
         )
         
@@ -233,7 +233,7 @@ class TestProductoService:
         success, message = producto_service.ajustar_stock(
             producto_id,
             tipo='merma',
-            cantidad=cantidad,
+            cantidad=-cantidad,
             usuario_id=test_user.id,
             notas='Producto vencido'
         )
@@ -249,13 +249,15 @@ class TestProductoService:
         """Test: Ajuste de inventario (corrección)"""
         # Arrange
         producto_id = 3
+        stock_inicial = producto_service.obtener_producto(producto_id).stock
         nuevo_stock = 175
+        delta = nuevo_stock - stock_inicial
         
         # Act
         success, message = producto_service.ajustar_stock(
             producto_id,
             tipo='ajuste',
-            cantidad=nuevo_stock,
+            cantidad=delta,
             usuario_id=test_user.id,
             notas='Corrección por inventario físico'
         )

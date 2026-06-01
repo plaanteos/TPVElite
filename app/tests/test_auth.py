@@ -39,7 +39,7 @@ class TestAuthService:
         
         # Assert
         assert success is False
-        assert "incorrecta" in message.lower() or "inválida" in message.lower()
+        assert "incorrect" in message.lower()
         assert user is None
         assert auth_service.current_user is None
     
@@ -54,7 +54,7 @@ class TestAuthService:
         
         # Assert
         assert success is False
-        assert "encontrado" in message.lower() or "existe" in message.lower()
+        assert "incorrect" in message.lower()
         assert user is None
         assert auth_service.current_user is None
     
@@ -71,7 +71,7 @@ class TestAuthService:
         
         # Assert
         assert success is False
-        assert "inactivo" in message.lower() or "desactivado" in message.lower()
+        assert "incorrect" in message.lower()
         assert user is None
     
     def test_logout(self, auth_service):
@@ -182,8 +182,8 @@ class TestAuthService:
         # Assert
         assert success is True
         assert user is not None
-        assert user.rol == "vendedor"
-        assert auth_service.current_user.rol == "vendedor"
+        assert user.rol == "cajero"
+        assert auth_service.current_user.rol == "cajero"
     
     def test_multiples_intentos_login(self, auth_service):
         """Test: Múltiples intentos de login"""
@@ -202,16 +202,19 @@ class TestAuthService:
         # Test con username vacío
         success1, msg1, user1 = auth_service.login("", "password")
         assert success1 is False
+        assert "obligatorios" in msg1.lower()
         assert user1 is None
         
         # Test con password vacío
         success2, msg2, user2 = auth_service.login("admin", "")
         assert success2 is False
+        assert "obligatorios" in msg2.lower()
         assert user2 is None
         
         # Test con ambos vacíos
         success3, msg3, user3 = auth_service.login("", "")
         assert success3 is False
+        assert "obligatorios" in msg3.lower()
         assert user3 is None
     
     def test_current_user_persistencia(self, auth_service):
@@ -280,4 +283,23 @@ class TestAuthServiceIntegration:
         # Login con vendedor
         auth_service.login("vendedor1", "vendedor123")
         assert auth_service.current_user.username == "vendedor1"
-        assert auth_service.current_user.rol == "vendedor"
+        assert auth_service.current_user.rol == "cajero"
+
+    def test_login_con_cuenta_legacy_exige_cambio_password(self, auth_service, db_manager):
+        """Test: Cuenta con hash legacy se migra y marca cambio obligatorio"""
+        import hashlib
+
+        legacy_hash = hashlib.sha256("legacy-pass".encode("utf-8")).hexdigest()
+        db_manager.execute_query(
+            """
+            INSERT INTO usuarios (username, password_hash, nombre, rol, activo, must_change_password)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            ("legacy_user", legacy_hash, "Usuario Legacy", "cajero", 1, 0),
+        )
+
+        success, _, user = auth_service.login("legacy_user", "legacy-pass")
+
+        assert success is True
+        assert user is not None
+        assert user.must_change_password is True

@@ -10,6 +10,7 @@ import queue
 import logging
 import uuid
 import json
+import os
 import urllib.error
 import urllib.request
 from typing import Optional, Dict, Any, List
@@ -31,7 +32,7 @@ TABLAS_SINCRONIZADAS = {
 COLUMNAS_CLOUD = {
     'usuarios': {
         'username', 'password_hash', 'nombre', 'apellido', 'email', 'rol',
-        'activo', 'fecha_creacion', 'ultimo_acceso', 'intentos_fallidos',
+        'activo', 'must_change_password', 'fecha_creacion', 'ultimo_acceso', 'intentos_fallidos',
     },
     'productos': {
         'nombre', 'descripcion', 'categoria', 'precio', 'costo', 'stock',
@@ -95,8 +96,15 @@ class CloudSync:
     def __init__(self, config: dict):
         self.habilitado: bool = config.get('habilitado', False)
         self.turso_url: str   = config.get('turso_url', '').rstrip('/')
-        self.turso_token: str = config.get('turso_token', '')
+        token_entorno = os.getenv('TPV_TURSO_TOKEN', '').strip()
+        self.turso_token: str = token_entorno
         self.tenant_id: str   = config.get('tenant_id', '')
+
+        if config.get('turso_token') and not token_entorno:
+            logger.warning(
+                "Se detectó turso_token en config.json pero no se usará por seguridad. "
+                "Configure TPV_TURSO_TOKEN en el entorno para habilitar sincronización."
+            )
 
         self._client = None
         self._cola: queue.Queue = queue.Queue()
@@ -202,6 +210,7 @@ class CloudSync:
                 email     TEXT,
                 rol       TEXT DEFAULT 'cajero',
                 activo    INTEGER DEFAULT 1,
+                must_change_password INTEGER DEFAULT 0,
                 fecha_creacion TEXT,
                 ultimo_acceso  TEXT,
                 intentos_fallidos INTEGER DEFAULT 0,

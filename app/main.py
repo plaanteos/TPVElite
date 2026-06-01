@@ -2614,8 +2614,8 @@ class ModernTPV:
                 if not password:
                     messagebox.showwarning("Advertencia", "Ingresá una contraseña.")
                     return
-                if len(password) < 4:
-                    messagebox.showwarning("Advertencia", "La contraseña debe tener al menos 4 caracteres.")
+                if len(password) < 8:
+                    messagebox.showwarning("Advertencia", "La contraseña debe tener al menos 8 caracteres.")
                     return
                 if password != password2:
                     messagebox.showwarning("Advertencia", "Las contraseñas no coinciden.")
@@ -2717,7 +2717,7 @@ class ModernTPV:
                 except Exception as e:
                     logger.error(f"Error creando usuario: {e}")
                     messagebox.showerror("Error",
-                        f"No se pudo crear el usuario: {e}\n\nPodés usar admin / admin123 para entrar.")
+                        f"No se pudo crear el usuario: {e}")
 
                 self._apply_business_branding()
                 messagebox.showinfo("¡Todo listo! 🎉",
@@ -2870,7 +2870,7 @@ class ModernTPV:
                               highlightthickness=1)
         info_frame.pack(fill='x', pady=(16, 0))
         if not configured:
-            hint = "Usuario por defecto: admin  |  Contraseña: admin123"
+            hint = "Completá el wizard inicial para crear la cuenta administradora"
         else:
             hint = f"Accedé con el usuario creado durante la configuración"
         tk.Label(info_frame, text=f"ℹ  {hint}",
@@ -2889,6 +2889,13 @@ class ModernTPV:
             success, message, user = self.auth_service.login(username, password)
             if success:
                 logger.info(f"✅ Login exitoso: {username}")
+                if getattr(user, 'must_change_password', False):
+                    messagebox.showwarning(
+                        "Cambio de contraseña requerido",
+                        "Por seguridad, debes actualizar tu contraseña antes de continuar."
+                    )
+                    self._change_password_dialog(force_mode=True)
+                    return
                 self.show_main_app()
             else:
                 logger.warning(f"❌ Login fallido: {username}")
@@ -7818,13 +7825,16 @@ Python: {sys.version.split()[0]}
                  style='Info.TLabel',
                  justify='left').pack(pady=5)
     
-    def _change_password_dialog(self):
+    def _change_password_dialog(self, force_mode: bool = False):
         """Diálogo para cambiar contraseña"""
         dialog = tk.Toplevel(self.root)
-        dialog.title("Cambiar Contraseña")
+        dialog.title("Cambio Obligatorio de Contraseña" if force_mode else "Cambiar Contraseña")
         dialog.geometry("400x300")
         dialog.transient(self.root)
         dialog.grab_set()
+
+        if force_mode:
+            dialog.protocol("WM_DELETE_WINDOW", lambda: None)
         
         form_frame = ttk.Frame(dialog, padding=20)
         form_frame.pack(fill='both', expand=True)
@@ -7857,36 +7867,28 @@ Python: {sys.version.split()[0]}
                 messagebox.showerror("Error", "Las contraseñas no coinciden")
                 return
             
-            if len(new) < 4:
-                messagebox.showerror("Error", "La contraseña debe tener al menos 4 caracteres")
+            if len(new) < 8:
+                messagebox.showerror("Error", "La contraseña debe tener al menos 8 caracteres")
                 return
             
-            # Verificar contraseña actual
             user = self.auth_service.current_user
-            if not user.verificar_password(current):
-                messagebox.showerror("Error", "Contraseña actual incorrecta")
-                return
-            
-            # Cambiar contraseña
-            from models import Usuario
-            new_hash = Usuario.hash_password(new)
-            success = self.db.execute_query(
-                "UPDATE usuarios SET password_hash = ? WHERE id = ?",
-                (new_hash, user.id)
-            )
+            success, msg = self.auth_service.cambiar_password(user.id, current, new)
             
             if success:
                 messagebox.showinfo("Éxito", "Contraseña cambiada correctamente")
                 dialog.destroy()
+                if force_mode:
+                    self.show_main_app()
             else:
-                messagebox.showerror("Error", "No se pudo cambiar la contraseña")
+                messagebox.showerror("Error", msg)
         
         # Botones
         btn_frame = ttk.Frame(form_frame)
         btn_frame.pack(pady=20)
         
         ttk.Button(btn_frame, text="Cambiar", command=change_password, style='Success.TButton').pack(side='left', padx=5)
-        ttk.Button(btn_frame, text="Cancelar", command=dialog.destroy, style='Danger.TButton').pack(side='left', padx=5)
+        if not force_mode:
+            ttk.Button(btn_frame, text="Cancelar", command=dialog.destroy, style='Danger.TButton').pack(side='left', padx=5)
     
     def _backup_database(self):
         """Respalda la base de datos"""
@@ -8687,9 +8689,9 @@ de manera eficiente y profesional.
 INICIO RÁPIDO:
 
 1. LOGIN
-   - Usuario por defecto: admin
-   - Contraseña: admin123
-   - Cambie la contraseña en Configuración
+    - Cree su usuario administrador en el wizard inicial
+    - Use credenciales propias (no existen claves por defecto)
+    - La contraseña mínima es de 8 caracteres
 
 2. DASHBOARD
    - Visualice estadísticas de ventas

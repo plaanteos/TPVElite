@@ -25,6 +25,7 @@ class Usuario:
     email: Optional[str] = None
     rol: str = "cajero"
     activo: bool = True
+    must_change_password: bool = False
     fecha_creacion: Optional[datetime] = None
     ultimo_acceso: Optional[datetime] = None
     intentos_fallidos: int = 0

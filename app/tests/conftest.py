@@ -86,7 +86,7 @@ def test_vendedor(db_manager):
         username="vendedor1",
         nombre="Vendedor Test",
         email="vendedor@test.com",
-        rol="vendedor",
+        rol="cajero",
         activo=True
     )
 
@@ -102,8 +102,9 @@ def _create_test_schema(db: DatabaseManager):
             nombre TEXT NOT NULL,
             apellido TEXT,
             email TEXT,
-            rol TEXT NOT NULL DEFAULT 'vendedor',
+            rol TEXT NOT NULL DEFAULT 'cajero',
             activo INTEGER DEFAULT 1,
+            must_change_password INTEGER DEFAULT 0,
             fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             ultimo_acceso TIMESTAMP,
             intentos_fallidos INTEGER DEFAULT 0
@@ -115,14 +116,18 @@ def _create_test_schema(db: DatabaseManager):
         CREATE TABLE IF NOT EXISTS productos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
+            descripcion TEXT,
             categoria TEXT NOT NULL,
             precio REAL NOT NULL,
             costo REAL,
             stock INTEGER DEFAULT 0,
             stock_minimo INTEGER DEFAULT 5,
+            unidad_medida TEXT DEFAULT 'unidad',
             codigo_barras TEXT,
+            proveedor_id INTEGER,
             activo INTEGER DEFAULT 1,
-            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     
@@ -163,6 +168,8 @@ def _create_test_schema(db: DatabaseManager):
             producto_id INTEGER NOT NULL,
             tipo TEXT NOT NULL,
             cantidad INTEGER NOT NULL,
+            stock_anterior INTEGER,
+            stock_nuevo INTEGER,
             usuario_id INTEGER,
             referencia TEXT,
             notas TEXT,
@@ -229,16 +236,16 @@ def _insert_test_data(db: DatabaseManager):
     password_hash = bcrypt.hashpw("admin123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     db.execute_query("""
-        INSERT INTO usuarios (username, password_hash, nombre, apellido, email, rol, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, ("admin", password_hash, "Administrador", "Test", "admin@test.com", "admin", 1))
+        INSERT INTO usuarios (username, password_hash, nombre, apellido, email, rol, activo, must_change_password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, ("admin", password_hash, "Administrador", "Test", "admin@test.com", "admin", 1, 0))
     
     password_hash2 = bcrypt.hashpw("vendedor123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     db.execute_query("""
-        INSERT INTO usuarios (username, password_hash, nombre, apellido, email, rol, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, ("vendedor1", password_hash2, "Vendedor", "Test", "vendedor@test.com", "vendedor", 1))
+        INSERT INTO usuarios (username, password_hash, nombre, apellido, email, rol, activo, must_change_password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, ("vendedor1", password_hash2, "Vendedor", "Test", "vendedor@test.com", "cajero", 1, 0))
     
     # Productos de prueba
     db.execute_query("""
