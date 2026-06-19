@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Pedidos">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#bg)"/>
+  <rect x="36" y="26" width="728" height="308" rx="24" fill="#111a2c" stroke="#1f2b43"/>
+  <text x="72" y="70" fill="#cbd5e1" font-size="18" font-family="Inter, Arial" font-weight="700">Tablero de pedidos</text>
+  <g>
+    <rect x="64" y="92" width="220" height="226" rx="14" fill="#0b1220" stroke="#22324e"/>
+    <text x="82" y="118" fill="#8fa4bd" font-size="13" font-family="Inter, Arial">En preparacion</text>
+    <rect x="82" y="132" width="184" height="54" rx="10" fill="#1a2740"/>
+    <rect x="82" y="194" width="184" height="54" rx="10" fill="#1a2740"/>
+  </g>
+  <g>
+    <rect x="290" y="92" width="220" height="226" rx="14" fill="#0b1220" stroke="#22324e"/>
+    <text x="308" y="118" fill="#8fa4bd" font-size="13" font-family="Inter, Arial">Listo para despacho</text>
+    <rect x="308" y="132" width="184" height="54" rx="10" fill="#164e63"/>
+    <rect x="308" y="194" width="184" height="54" rx="10" fill="#164e63"/>
+  </g>
+  <g>
+    <rect x="516" y="92" width="220" height="226" rx="14" fill="#0b1220" stroke="#22324e"/>
+    <text x="534" y="118" fill="#8fa4bd" font-size="13" font-family="Inter, Arial">Entregado</text>
+    <rect x="534" y="132" width="184" height="54" rx="10" fill="#14532d"/>
+    <rect x="534" y="194" width="184" height="54" rx="10" fill="#14532d"/>
+  </g>
+  <path d="M282 159 L296 159" stroke="#0ea5e9" stroke-width="4"/>
+  <path d="M508 159 L522 159" stroke="#14b8a6" stroke-width="4"/>
+</svg>
