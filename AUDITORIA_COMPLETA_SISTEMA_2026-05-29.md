@@ -88,7 +88,7 @@ Evidencia de cierre P0 (2026-05-29):
 - Se corrigió el bug de inventario `motivo/notas` en ajustes de stock (`app/services.py`).
 - Backend CORS endurecido con deny-by-default cuando `ALLOWED_ORIGINS` no está configurado (`backend/server.js`).
 - Tests de autenticación alineados al contrato actual y workflow reproducible agregado (`app/tests/test_auth.py`, `app/tests/conftest.py`, `.github/workflows/tests.yml`).
-- Versión de aplicación/landing/instalador mantenida en `3.0.3`.
+- Versión de aplicación/landing/instalador mantenida en `3.0.5`.
 
 Nota operativa:
 - La revocación/rotación del token Turso comprometido debe ejecutarse en consola de Turso (fuera del repositorio) como tarea de operación de seguridad.

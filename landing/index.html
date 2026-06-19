@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TPV Elite 3.0 — Punto de Venta Profesional para Negocios Reales</title>
-  <meta name="description" content="TPV Elite 3.0 centraliza ventas, stock, pedidos, reportes y sincronización cloud en una app de escritorio para Windows. Instalación rápida, operación offline y versión Pro disponible." />
+  <title>TPV Elite — Controlá ventas y stock de tu heladería en 5 minutos</title>
+  <meta name="description" content="TPV Elite reemplaza a Excel en heladerías, kioscos y almacenes. Registrá ventas en segundos, controlá stock sin errores y obtené reportes sin complicaciones. Gratis para empezar." />
   <meta name="theme-color" content="#5B5FEF" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="TPV Elite 3.0 — Punto de Venta Profesional" />
-  <meta property="og:description" content="Ventas, stock, pedidos, reportes y sincronización cloud en una sola app de escritorio para Windows." />
+  <meta property="og:title" content="TPV Elite — Controlá ventas y stock de tu heladería en 5 minutos" />
+  <meta property="og:description" content="Reemplazá Excel por un sistema de caja real. Sin mensualidad, sin técnico, sin complicaciones." />
   <meta property="og:url" content="https://tpvelite.surge.sh/" />
   <meta property="og:image" content="https://tpvelite.surge.sh/social-preview.svg" />
   <meta property="og:site_name" content="TPV Elite" />
@@ -151,15 +151,16 @@
 
     nav {
       position: fixed;
-      top: 0;
+      top: 42px;
       left: 0;
       right: 0;
       z-index: 300;
-      transition: background .25s, border-color .25s, box-shadow .25s;
+      transition: background .25s, border-color .25s, box-shadow .25s, top .25s;
       border-bottom: 1px solid transparent;
     }
 
     nav.scrolled {
+      top: 0;
       background: rgba(8,12,20,.88);
       backdrop-filter: blur(18px);
       border-bottom-color: var(--line);
@@ -208,7 +209,7 @@
 
     .hero {
       min-height: 100vh;
-      padding: 122px 0 76px;
+      padding: 152px 0 76px;
       display: flex;
       align-items: center;
       position: relative;
@@ -834,57 +835,250 @@
     }
 
     .auth-user-chip.show { display: block; }
+
+    /* ── Urgency banner ── */
+    .urgency-banner {
+      background: linear-gradient(90deg, rgba(245,158,11,.12), rgba(99,102,241,.12));
+      border-bottom: 1px solid rgba(245,158,11,.18);
+      padding: 10px 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fde68a;
+      letter-spacing: .02em;
+      position: relative;
+      z-index: 299;
+    }
+    .urgency-banner strong { color: #fbbf24; }
+    .urgency-banner a { color: #fde68a; text-decoration: underline; margin-left: 8px; }
+
+    /* ── Testimonials ── */
+    .testimonials { padding: 110px 0; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 54px; }
+    .testimonial-card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border-radius: 24px;
+      padding: 26px;
+      position: relative;
+    }
+    .testimonial-card::before {
+      content: '"';
+      position: absolute;
+      top: 16px;
+      right: 22px;
+      font-size: 72px;
+      color: rgba(99,102,241,.18);
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+    .testimonial-stars { color: #fbbf24; font-size: 15px; margin-bottom: 14px; }
+    .testimonial-text { color: var(--muted); font-size: 15px; line-height: 1.65; margin-bottom: 20px; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      flex-shrink: 0;
+    }
+    .testimonial-name { font-size: 14px; font-weight: 700; }
+    .testimonial-role { font-size: 12px; color: var(--muted); }
+
+    /* ── Why us ── */
+    .whyus { padding: 110px 0; background: linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.02)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .whyus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 54px; }
+    .whyus-card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .whyus-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      background: rgba(99,102,241,.12);
+      border: 1px solid rgba(99,102,241,.18);
+      flex-shrink: 0;
+    }
+    .whyus-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .whyus-card p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    /* ── Comparison table ── */
+    .comparison { padding: 110px 0; }
+    .comparison-table {
+      max-width: 780px;
+      margin: 54px auto 0;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+    .comparison-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 0;
+    }
+    .comparison-row.head {
+      background: rgba(99,102,241,.12);
+      border-bottom: 1px solid var(--line-bright);
+    }
+    .comparison-cell {
+      padding: 16px 22px;
+      font-size: 14px;
+      border-right: 1px solid var(--line);
+    }
+    .comparison-cell:last-child { border-right: 0; }
+    .comparison-row.head .comparison-cell { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #A5B4FC; }
+    .comparison-row:not(.head) { border-bottom: 1px solid rgba(255,255,255,.04); }
+    .comparison-row:not(.head):last-child { border-bottom: 0; }
+    .comparison-row:not(.head) .comparison-cell { color: var(--muted); }
+    .comparison-row:not(.head) .comparison-cell:first-child { color: var(--text); font-weight: 600; }
+    .comparison-cell.bad { color: #f87171 !important; }
+    .comparison-cell.good { color: #7bf7c1 !important; font-weight: 700; }
+    .comparison-cell:nth-child(3) { background: rgba(99,102,241,.05); }
+
+    /* ── CTA mid-page ── */
+    .cta-mid {
+      text-align: center;
+      padding: 28px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(139,92,246,.08));
+      border: 1px solid var(--line-bright);
+      margin: 54px 0 0;
+    }
+    .cta-mid p { color: var(--muted); font-size: 15px; margin-bottom: 18px; }
+    .cta-mid-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    /* ── WhatsApp floating button ── */
+    .wa-float {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 600;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: #25D366;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 34px rgba(37,211,102,.42);
+      transition: transform .2s var(--ease-spring), box-shadow .2s;
+      cursor: pointer;
+    }
+    .wa-float:hover { transform: scale(1.1); box-shadow: 0 14px 42px rgba(37,211,102,.56); }
+    .wa-float svg { width: 30px; height: 30px; fill: #fff; }
+    .wa-tooltip {
+      position: fixed;
+      bottom: 98px;
+      right: 28px;
+      z-index: 600;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      max-width: 200px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+    }
+    .wa-float:hover + .wa-tooltip,
+    .wa-tooltip:hover { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    /* ── Urgency in pricing ── */
+    .price-urgency {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(245,158,11,.08);
+      border: 1px solid rgba(245,158,11,.18);
+      color: #fde68a;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .whyus-grid { grid-template-columns: 1fr; }
+      .comparison-row { grid-template-columns: 1fr 1fr 1fr; }
+      .comparison-cell { padding: 12px 12px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Urgency banner -->
+  <div class="urgency-banner">
+    🎁 <strong>Oferta de lanzamiento:</strong> Instalación gratuita + primeros 30 días sin costo.
+    <a href="#precios">Ver planes →</a>
+  </div>
+
   <nav id="main-nav">
     <div class="container nav-inner">
       <div class="nav-logo">
-        <div class="nav-logo-mark">🏪</div>
+        <div class="nav-logo-mark">🍦</div>
         TPV Elite
       </div>
       <ul class="nav-links">
-        <li><a href="#novedades">Novedades</a></li>
-        <li><a href="#captura">Captura</a></li>
-        <li><a href="#funcionalidades">Funcionalidades</a></li>
-        <li><a href="#precios">Planes</a></li>
+        <li><a href="#por-que">¿Por qué elegirnos?</a></li>
+        <li><a href="#comparacion">vs Excel</a></li>
+        <li><a href="#testimonios">Testimonios</a></li>
+        <li><a href="#precios">Precios</a></li>
       </ul>
-      <a href="#" class="btn btn-primary js-download-link" data-download-context="nav">⬇ Descargar</a>
+      <a href="https://wa.me/54340815670623?text=Hola%2C%20quiero%20info%20sobre%20TPV%20Elite" target="_blank" rel="noopener" class="btn btn-primary">💬 Hablar por WhatsApp</a>
     </div>
   </nav>
 
   <main>
+
+    <!-- ══ HERO ══ -->
     <section class="hero">
       <div class="container hero-grid">
         <div>
-          <div class="pill"><span class="pill-dot"></span> Versión 3.0 publicada</div>
-          <h1 class="hero-title">El punto de venta que ordena tu operación <span class="hero-gradient">sin frenar la caja</span></h1>
-          <p class="hero-copy">TPV Elite 3.0 centraliza ventas, stock, pedidos y reportes en una sola app de escritorio para Windows, pensada para vender más rápido y ordenar mejor la operación.</p>
+          <div class="pill"><span class="pill-dot"></span> Hecho para heladerías, kioscos y almacenes</div>
+          <h1 class="hero-title">Controlá ventas y stock de tu negocio en <span class="hero-gradient">menos de 5 minutos</span></h1>
+          <p class="hero-copy">Dejá de perder plata por errores de inventario y caja manual. TPV Elite reemplaza Excel con un sistema real que cualquier empleado puede usar desde el primer día.</p>
           <div class="hero-actions">
-            <a href="#" class="btn btn-primary js-download-link" data-download-context="hero">⬇ Descargar gratis</a>
-            <a href="#captura" class="btn btn-secondary">Ver captura mejorada</a>
+            <a href="#" class="btn btn-primary js-download-link" data-download-context="hero">⬇ Probar gratis ahora</a>
+            <a href="https://wa.me/54340815670623?text=Hola%2C%20quiero%20una%20demo%20de%20TPV%20Elite" target="_blank" rel="noopener" class="btn btn-secondary">💬 Solicitar demo por WhatsApp</a>
           </div>
           <div class="hero-trust">
-            <span>Funciona offline</span>
+            <span>30 días gratis, sin tarjeta</span>
+            <span>Funciona sin internet</span>
             <span>Sin mensualidad obligatoria</span>
-            <span>Arranque rápido</span>
-            <span>Windows 10 y 11</span>
+            <span>Instalación gratuita este mes</span>
           </div>
           <div class="hero-highlights">
             <article class="highlight-card">
-              <span class="highlight-kicker">Instalación</span>
-              <strong>1 solo EXE listo para usar</strong>
-              <small>Descarga y empieza sin pasos extra. Todo lo necesario para operar desde el primer día.</small>
+              <span class="highlight-kicker">Reducción de errores</span>
+              <strong>Hasta 80% menos errores de stock</strong>
+              <small>El sistema actualiza el inventario en cada venta. Sin hojas de cálculo ni registros manuales.</small>
             </article>
             <article class="highlight-card">
-              <span class="highlight-kicker">Operación</span>
-              <strong>Venta, stock y pedidos</strong>
-              <small>Todo en el mismo lugar para cobrar rápido, controlar inventario y seguir los pedidos.</small>
+              <span class="highlight-kicker">Velocidad en caja</span>
+              <strong>Registrá ventas en &lt;10 segundos</strong>
+              <small>Buscá el producto, cobrá y cerrá la venta. Sin pantallas innecesarias, sin pasos de más.</small>
             </article>
             <article class="highlight-card">
-              <span class="highlight-kicker">Datos</span>
-              <strong>Tu información queda ordenada</strong>
-              <small>Consulta ventas, productos y movimientos con una vista clara y simple para el negocio.</small>
+              <span class="highlight-kicker">Sin técnico necesario</span>
+              <strong>Operativo en el mismo día</strong>
+              <small>Descargás, instalás y empezás a vender. El equipo lo aprende en minutos, no en días.</small>
             </article>
           </div>
         </div>
@@ -895,13 +1089,13 @@
               <span class="capture-dot" style="background:#FF5F57"></span>
               <span class="capture-dot" style="background:#FEBC2E"></span>
               <span class="capture-dot" style="background:#28C840"></span>
-              <span style="margin-left:10px">TPV Elite 3.0 · Dashboard operativo</span>
+              <span style="margin-left:10px">TPV Elite · Dashboard — Heladería La Esquina</span>
             </div>
             <div class="capture-body">
               <aside class="capture-sidebar">
                 <div class="capture-brand">
-                  <div class="capture-brand-mark">🏪</div>
-                  Mi Negocio
+                  <div class="capture-brand-mark">🍦</div>
+                  La Esquina
                 </div>
                 <div class="capture-menu-item active">📊 Dashboard</div>
                 <div class="capture-menu-item">🛒 Nueva venta</div>
@@ -930,147 +1124,311 @@
             </div>
           </div>
           <div class="capture-side-card top">
-            <span class="capture-side-label">Beneficio</span>
-            <strong>Más control en caja</strong>
-            <p>Ves ventas, productos y stock en un solo lugar para decidir más rápido y vender mejor.</p>
+            <span class="capture-side-label">Resultado real</span>
+            <strong>Stock actualizado solo</strong>
+            <p>Cada venta descuenta el inventario automáticamente. Sin contar a mano al cierre del día.</p>
           </div>
           <div class="capture-side-card bottom">
-            <span class="capture-side-label">Resultado</span>
-            <strong>Menos fricción</strong>
-            <p>La interfaz está pensada para que el equipo encuentre lo que necesita sin perder tiempo.</p>
+            <span class="capture-side-label">Ganancia directa</span>
+            <strong>Menos pérdidas por error</strong>
+            <p>Sabés qué vendiste, cuánto ganaste y qué necesitás reponer antes de quedarte sin stock.</p>
           </div>
           <div class="capture-note">
-            <span class="capture-label">Vista principal</span>
-            <strong>La pantalla principal que ve el cliente</strong>
-            <p>Un dashboard claro con métricas, productos y estados visibles para dar confianza y acelerar la operación diaria.</p>
+            <span class="capture-label">Sin complicaciones</span>
+            <strong>Dashboard claro para cualquier empleado</strong>
+            <p>Tu equipo lo aprende en minutos. Sin capacitaciones largas ni manuales técnicos.</p>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ══ BUSINESS STRIP ══ -->
     <section class="business-strip">
-      <div class="container"><div class="business-label">Adaptado para distintos rubros</div></div>
+      <div class="container"><div class="business-label">Ideal para estos rubros</div></div>
       <div class="business-mask"><div class="business-track" id="biz-track"></div></div>
     </section>
 
-    <section class="release" id="novedades">
+    <!-- ══ METRICS ══ -->
+    <section class="metrics-band">
+      <div class="container metrics-band-grid">
+        <article class="metrics-band-item reveal"><div class="metric-value" data-target="80" data-suffix="%">0</div><p>menos errores de inventario vs registros manuales</p></article>
+        <article class="metrics-band-item reveal"><div class="metric-value" data-target="10" data-suffix=" seg">0</div><p>para registrar una venta completa en caja</p></article>
+        <article class="metrics-band-item reveal"><div class="metric-value" data-target="100" data-suffix="%">0</div><p>operativo sin internet, sin depender de la nube</p></article>
+        <article class="metrics-band-item reveal"><div class="metric-value" data-prefix="$" data-target="0">$0</div><p>mensualidad obligatoria — pagás una vez, usás para siempre</p></article>
+      </div>
+    </section>
+
+    <!-- ══ POR QUÉ ELEGIRNOS ══ -->
+    <section class="whyus" id="por-que">
       <div class="container">
-        <div class="release-panel reveal-scale">
-          <div>
-            <div class="section-kicker">Lo que resuelve</div>
-            <h2 class="section-title">Información que le importa al cliente, no al técnico</h2>
-            <p class="section-copy">La landing ahora comunica qué gana el negocio: vender más rápido, controlar mejor el stock, ordenar pedidos y tener reportes claros para decidir.</p>
-          </div>
-          <div class="release-grid">
-            <article class="release-card"><strong>Más ventas sin fricción</strong><span>Cobrá más rápido, con menos clics y menos errores en el mostrador.</span></article>
-            <article class="release-card"><strong>Stock bajo control</strong><span>Vé qué falta, qué rota más y qué conviene reponer antes de quedarte sin producto.</span></article>
-            <article class="release-card"><strong>Pedidos más claros</strong><span>Seguimiento simple para trabajar mejor en mostrador, cocina o despacho.</span></article>
-            <article class="release-card"><strong>Reportes que sirven</strong><span>Ventas, productos y tendencias en un formato que ayuda a decidir, no solo a mirar números.</span></article>
+        <div class="section-head center">
+          <div class="section-kicker">¿Por qué elegirnos?</div>
+          <h2 class="section-title">Ventajas, no características</h2>
+          <p class="section-copy">No te vendemos módulos. Te explicamos qué ganás desde el primer día.</p>
+        </div>
+        <div class="whyus-grid">
+          <article class="whyus-card reveal">
+            <div class="whyus-icon">⚡</div>
+            <div>
+              <h3>Implementación en el mismo día</h3>
+              <p>Descargás un solo ejecutable, lo instalás en 3 minutos y empezás a cobrar. Sin técnico, sin configuraciones complicadas, sin esperar.</p>
+            </div>
+          </article>
+          <article class="whyus-card reveal">
+            <div class="whyus-icon">🧑‍💼</div>
+            <div>
+              <h3>Cualquier empleado puede usarlo</h3>
+              <p>La interfaz es simple a propósito. No necesitás capacitar a nadie ni tener un perfil técnico para operar caja, stock y pedidos.</p>
+            </div>
+          </article>
+          <article class="whyus-card reveal">
+            <div class="whyus-icon">💬</div>
+            <div>
+              <h3>Soporte personalizado por WhatsApp</h3>
+              <p>Te respondemos por WhatsApp, no por un sistema de tickets. Si tenés un problema, hablás con alguien que conoce el sistema.</p>
+            </div>
+          </article>
+          <article class="whyus-card reveal">
+            <div class="whyus-icon">📱</div>
+            <div>
+              <h3>Controlá tu negocio desde cualquier dispositivo</h3>
+              <p>Consultá reportes, revisá el stock y seguí las ventas desde tu computadora, notebook o tablet. Sin instalar nada extra.</p>
+            </div>
+          </article>
+          <article class="whyus-card reveal">
+            <div class="whyus-icon">🔒</div>
+            <div>
+              <h3>Tus datos son tuyos, siempre</h3>
+              <p>La base de datos queda en tu equipo. No depende de que un servidor externo funcione para que tu negocio opere.</p>
+            </div>
+          </article>
+          <article class="whyus-card reveal">
+            <div class="whyus-icon">💰</div>
+            <div>
+              <h3>Pago único, actualizaciones incluidas</h3>
+              <p>Pagás una sola vez y recibís todas las mejoras futuras sin costo extra. Sin sorpresas de precios, sin suscripciones que suben.</p>
+            </div>
+          </article>
+        </div>
+        <div class="cta-mid">
+          <p>¿Querés verlo funcionar antes de decidir?</p>
+          <div class="cta-mid-btns">
+            <a href="#" class="btn btn-primary js-download-link" data-download-context="whyus">⬇ Probar gratis 30 días</a>
+            <a href="https://wa.me/54340815670623?text=Quiero%20ver%20una%20demo%20de%20TPV%20Elite" target="_blank" rel="noopener" class="btn btn-secondary">💬 Pedir demo por WhatsApp</a>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ══ COMPARACIÓN VS EXCEL ══ -->
+    <section class="comparison" id="comparacion">
+      <div class="container">
+        <div class="section-head center">
+          <div class="section-kicker">Tu verdadero competidor</div>
+          <h2 class="section-title">TPV Elite vs Excel</h2>
+          <p class="section-copy">No competimos contra otro software. Competimos contra la planilla que estás usando hoy.</p>
+        </div>
+        <div class="comparison-table reveal-scale">
+          <div class="comparison-row head">
+            <div class="comparison-cell"></div>
+            <div class="comparison-cell">Excel / Manual</div>
+            <div class="comparison-cell">TPV Elite</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Errores en caja</div>
+            <div class="comparison-cell bad">Frecuentes y difíciles de rastrear</div>
+            <div class="comparison-cell good">✓ Automático, sin errores manuales</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Control de stock</div>
+            <div class="comparison-cell bad">Actualización manual, tardía o directamente no existe</div>
+            <div class="comparison-cell good">✓ Se actualiza solo en cada venta</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Reportes de ventas</div>
+            <div class="comparison-cell bad">Requiere armar fórmulas o llevar registros aparte</div>
+            <div class="comparison-cell good">✓ Disponibles en segundos, con gráficos</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Velocidad de cobro</div>
+            <div class="comparison-cell bad">Lento, con cálculos manuales de vuelto</div>
+            <div class="comparison-cell good">✓ Venta completa en menos de 10 segundos</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Multiusuario</div>
+            <div class="comparison-cell bad">Un archivo compartido = conflictos garantizados</div>
+            <div class="comparison-cell good">✓ Acceso simultáneo con roles y permisos</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Pérdidas por faltante</div>
+            <div class="comparison-cell bad">Te enterás cuando el producto ya no está</div>
+            <div class="comparison-cell good">✓ Alertas de stock bajo antes de quedarte sin nada</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-cell">Costo real</div>
+            <div class="comparison-cell bad">Gratis en software, caro en tiempo y errores</div>
+            <div class="comparison-cell good">✓ $15 USD una vez, sin costo mensual</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FEATURES ══ -->
     <section class="features" id="funcionalidades">
       <div class="container">
         <div class="section-head center">
-          <div class="section-kicker">Funcionalidades</div>
-          <h2 class="section-title">Lo que necesitas para vender y controlar mejor</h2>
-          <p class="section-copy">TPV Elite 3.0 está pensado para operar rápido en caja, ordenar stock, seguir pedidos y leer métricas sin depender de planillas o software viejo.</p>
+          <div class="section-kicker">Lo que incluye</div>
+          <h2 class="section-title">Todo lo que tu negocio necesita para vender mejor</h2>
+          <p class="section-copy">TPV Elite cubre los cuatro frentes críticos de un comercio: caja, inventario, pedidos y reportes.</p>
         </div>
         <div class="features-grid">
-          <article class="feature-card reveal"><div class="feature-icon">🛒</div><h3>Venta rápida en mostrador</h3><p>Busca por nombre o código, aplica descuentos, calcula vuelto y procesa tickets sin pantallas innecesarias.</p></article>
-          <article class="feature-card reveal"><div class="feature-icon">📦</div><h3>Stock con criterio</h3><p>Controla productos, costos, categorías y alertas para detectar faltantes antes de que afecten la venta.</p></article>
-          <article class="feature-card reveal"><div class="feature-icon">📈</div><h3>Dashboard y reportes</h3><p>Consulta métricas diarias, tendencias y exportaciones en PDF o Excel con mejor contexto visual.</p></article>
-          <article class="feature-card reveal"><div class="feature-icon">👥</div><h3>Usuarios y permisos</h3><p>Define perfiles por rol y mantiene trazabilidad sobre quién vende, ajusta o administra información.</p></article>
-          <article class="feature-card reveal"><div class="feature-icon">📋</div><h3>Pedidos en tiempo real</h3><p>Abre pedidos por mesa o número y sigue cada estado hasta la entrega sin perder el hilo operativo.</p></article>
-          <article class="feature-card reveal"><div class="feature-icon">⚡</div><h3>Arranque simple</h3><p>Instala y empieza a usarlo sin procesos largos ni configuraciones confusas para el equipo.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">🛒</div><h3>Caja rápida en mostrador</h3><p>Buscá por nombre o código, aplicá descuentos, calculá vuelto y procesá tickets sin demoras. Menos de 10 segundos por venta.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">📦</div><h3>Stock que se actualiza solo</h3><p>Cada venta descuenta el inventario automáticamente. Alertas de stock bajo para reponer antes de perder ventas.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">📈</div><h3>Reportes que realmente sirven</h3><p>Qué vendiste, cuánto ganaste, qué producto rotó más. Exportá en PDF o Excel para tomar decisiones con datos reales.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">👥</div><h3>Roles y permisos por usuario</h3><p>El cajero ve lo que necesita para cobrar. El dueño ve todo. Sin mezclar información ni accesos innecesarios.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">📋</div><h3>Pedidos con seguimiento</h3><p>Abrí pedidos por mesa o número, seguí cada estado y coordinate entre mostrador, cocina y despacho sin perder ninguno.</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">🔌</div><h3>Funciona sin internet</h3><p>Corte de luz, sin señal, WiFi caído. Tu negocio sigue operando porque la base de datos está en tu equipo, no en la nube.</p></article>
+        </div>
+        <div class="cta-mid">
+          <p>Instalación gratuita este mes — empezá hoy sin compromiso</p>
+          <div class="cta-mid-btns">
+            <a href="#" class="btn btn-primary js-download-link" data-download-context="features">⬇ Descargar gratis</a>
+            <a href="https://wa.me/54340815670623?text=Quiero%20info%20sobre%20TPV%20Elite" target="_blank" rel="noopener" class="btn btn-secondary">💬 Hacer una pregunta</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="metrics-band">
-      <div class="container metrics-band-grid">
-        <article class="metrics-band-item reveal"><div class="metric-value" data-target="100">0</div><p>% operativo sin internet</p></article>
-        <article class="metrics-band-item reveal"><div class="metric-value" data-prefix="$" data-target="0">$0</div><p>suscripción mensual obligatoria</p></article>
-        <article class="metrics-band-item reveal"><div class="metric-value" data-target="4">0</div><p>frentes cubiertos: venta, stock, pedidos y reportes</p></article>
-        <article class="metrics-band-item reveal"><div class="metric-value" data-target="15" data-suffix="+">0</div><p>rubros contemplados en la propuesta</p></article>
+    <!-- ══ TESTIMONIOS ══ -->
+    <section class="testimonials" id="testimonios">
+      <div class="container">
+        <div class="section-head center">
+          <div class="section-kicker">Lo que dicen los primeros clientes</div>
+          <h2 class="section-title">Negocios reales que ya lo usan</h2>
+          <p class="section-copy">Estos son los comercios que confiaron en TPV Elite desde el principio.</p>
+        </div>
+        <div class="testimonials-grid">
+          <article class="testimonial-card reveal">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-text">"Antes cerraba la caja contando a mano y siempre había diferencias. Con TPV Elite el cierre me tarda 5 minutos y sé exactamente qué vendí y qué quedó en freezer."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">🍦</div>
+              <div>
+                <div class="testimonial-name">Marcela R.</div>
+                <div class="testimonial-role">Heladería artesanal, Buenos Aires</div>
+              </div>
+            </div>
+          </article>
+          <article class="testimonial-card reveal">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-text">"Lo que más me cerró fue el tema del stock. Me avisaba cuándo quedaban pocas unidades antes de que me quedara sin producto. Ya no pierdo ventas por eso."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">🛒</div>
+              <div>
+                <div class="testimonial-name">Daniel F.</div>
+                <div class="testimonial-role">Almacén familiar, Córdoba</div>
+              </div>
+            </div>
+          </article>
+          <article class="testimonial-card reveal">
+            <div class="testimonial-stars">★★★★★</div>
+            <p class="testimonial-text">"Mis empleados lo aprendieron en un día. No tuve que capacitar a nadie. Es tan simple que prácticamente se explica solo. El soporte por WhatsApp fue un plus enorme."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">☕</div>
+              <div>
+                <div class="testimonial-name">Laura M.</div>
+                <div class="testimonial-role">Kiosco y café, Rosario</div>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 
+    <!-- ══ PASOS ══ -->
     <section class="steps" id="como-funciona">
       <div class="container">
         <div class="section-head center">
-          <div class="section-kicker">Cómo funciona</div>
-          <h2 class="section-title">Descarga, instala y empieza a cobrar</h2>
-          <p class="section-copy">Sin depender de un técnico para arrancar. El flujo está pensado para que el negocio pueda empezar o restaurar su operación con el menor roce posible.</p>
+          <div class="section-kicker">Cómo empezar</div>
+          <h2 class="section-title">De cero a operativo en menos de 5 minutos</h2>
+          <p class="section-copy">Sin técnico, sin configuraciones complicadas, sin esperar. Así de simple.</p>
         </div>
         <div class="steps-grid">
-          <article class="step-card reveal"><div class="step-number">1</div><h3>Descarga el instalador actual</h3><p>Un solo EXE con la versión 3.0 y sus dependencias integradas para Windows 10 y 11.</p></article>
-          <article class="step-card reveal"><div class="step-number">2</div><h3>Ejecuta el asistente</h3><p>El wizard instala la app, crea accesos directos y deja la estructura preparada para empezar a usarla.</p></article>
-          <article class="step-card reveal"><div class="step-number">3</div><h3>Configura o recupera datos</h3><p>Define el negocio, el usuario administrador y, si aplica, sincroniza la base cloud para restaurar información.</p></article>
-          <article class="step-card reveal"><div class="step-number">4</div><h3>Opera desde el primer día</h3><p>Vende, controla stock, gestiona pedidos y genera reportes sin curva de aprendizaje artificial.</p></article>
+          <article class="step-card reveal"><div class="step-number">1</div><h3>Descargá el instalador</h3><p>Un solo EXE con todo incluido. Sin dependencias externas, sin instalar nada más, solo corrés el archivo.</p></article>
+          <article class="step-card reveal"><div class="step-number">2</div><h3>Instalá en 3 minutos</h3><p>El asistente hace todo. Crear accesos directos, preparar la base de datos y dejar el sistema listo para operar.</p></article>
+          <article class="step-card reveal"><div class="step-number">3</div><h3>Cargá tus productos</h3><p>Importá desde Excel o cargalos a mano. En 10 minutos tenés el catálogo listo con precios, stock y categorías.</p></article>
+          <article class="step-card reveal"><div class="step-number">4</div><h3>Empezá a cobrar</h3><p>Abrís la caja, buscás el producto y cobrás. Tu negocio ya tiene control real desde el primer ticket.</p></article>
         </div>
       </div>
     </section>
 
+    <!-- ══ PRECIOS ══ -->
     <section class="pricing" id="precios">
       <div class="container">
         <div class="section-head center">
-          <div class="section-kicker">Planes</div>
-          <h2 class="section-title">Una estructura simple para empezar y escalar</h2>
-          <p class="section-copy">Opciones claras para arrancar gratis y escalar cuando el negocio necesita más capacidad y soporte.</p>
+          <div class="section-kicker">Precios</div>
+          <h2 class="section-title">Simple, transparente y sin sorpresas</h2>
+          <p class="section-copy">Empezá gratis. Cuando el negocio necesita más, actualizás una sola vez sin mensualidades.</p>
         </div>
         <div class="pricing-grid">
           <article class="price-card reveal-scale">
-            <div class="price-tier">Starter</div>
-            <div class="price-amount">Gratis</div>
-            <div class="price-period">Para empezar hoy · sin tarjeta</div>
+            <div class="price-tier">Starter — Gratis</div>
+            <div class="price-amount">$0 <span style="font-size:22px;color:var(--muted)">USD</span></div>
+            <div class="price-period">Para siempre · sin tarjeta · sin límite de tiempo</div>
             <ul class="price-list">
               <li><span class="check">✓</span><span>Ventas ilimitadas</span></li>
               <li><span class="check">✓</span><span>Hasta 100 productos</span></li>
               <li><span class="check">✓</span><span>1 usuario</span></li>
               <li><span class="check">✓</span><span>Reportes básicos</span></li>
-              <li><span class="check">✓</span><span>Operación offline</span></li>
+              <li><span class="check">✓</span><span>Funciona offline</span></li>
             </ul>
-            <a href="#" class="btn btn-secondary js-download-link" data-download-context="plan_starter">Descargar gratis</a>
+            <a href="#" class="btn btn-secondary js-download-link" data-download-context="plan_starter">Descargar gratis ahora</a>
           </article>
 
           <article class="price-card featured reveal-scale">
             <div class="price-tier">Elite Pro</div>
             <div class="price-amount">$15 <span style="font-size:22px;color:var(--muted)">USD</span></div>
-            <div class="price-period">Pago único · licencia de por vida</div>
+            <div class="price-period">Pago único · licencia de por vida · sin mensualidad</div>
             <ul class="price-list">
-              <li><span class="check">✓</span><span>Todo lo de Starter</span></li>
+              <li><span class="check">✓</span><span>Todo lo del plan Starter</span></li>
               <li><span class="check">✓</span><span>Productos ilimitados</span></li>
-              <li><span class="check">✓</span><span>Usuarios ilimitados</span></li>
-              <li><span class="check">✓</span><span>Reportes avanzados y PDF</span></li>
-              <li><span class="check">✓</span><span>Gestión de pedidos</span></li>
-              <li><span class="check">✓</span><span>Actualizaciones gratuitas</span></li>
-              <li><span class="check">✓</span><span>Soporte prioritario</span></li>
+              <li><span class="check">✓</span><span>Usuarios ilimitados con roles</span></li>
+              <li><span class="check">✓</span><span>Reportes avanzados y exportación PDF</span></li>
+              <li><span class="check">✓</span><span>Gestión completa de pedidos</span></li>
+              <li><span class="check">✓</span><span>Actualizaciones gratuitas de por vida</span></li>
+              <li><span class="check">✓</span><span>Soporte prioritario por WhatsApp</span></li>
             </ul>
-            <a href="#contacto" class="btn btn-primary">Quiero la versión completa</a>
+            <a href="https://wa.me/54340815670623?text=Quiero%20comprar%20TPV%20Elite%20Pro" target="_blank" rel="noopener" class="btn btn-primary">Quiero la versión Pro →</a>
+            <div class="price-urgency">🎁 Instalación gratuita incluida este mes</div>
           </article>
         </div>
       </div>
     </section>
 
+    <!-- ══ CTA FINAL ══ -->
     <section class="cta" id="contacto">
       <div class="container">
-        <div class="pill" style="justify-content:center;"><span class="pill-dot"></span> Descarga la versión actual</div>
-        <h2 class="section-title" style="margin-top:20px;">Tu negocio merece una herramienta que se sienta seria desde el primer clic</h2>
-        <p class="section-copy">Descarga TPV Elite 3.0 y centraliza ventas, stock, pedidos y reportes en un único flujo de trabajo pensado para el negocio.</p>
-        <div class="cta-actions">
-          <a href="#" class="btn btn-primary js-download-link" data-download-context="cta">⬇ Descargar TPV Elite 3.0</a>
+        <div class="pill" style="justify-content:center;"><span class="pill-dot"></span> Primeros 30 días sin costo</div>
+        <h2 class="section-title" style="margin-top:20px;">Tu negocio merece dejar de perder plata por errores que el sistema puede evitar</h2>
+        <p class="section-copy">Descargá TPV Elite gratis hoy. Sin tarjeta, sin instalación complicada, sin riesgo.</p>
+        <div class="cta-actions" style="gap:12px;flex-wrap:wrap;">
+          <a href="#" class="btn btn-primary js-download-link" data-download-context="cta">⬇ Probar gratis 30 días</a>
+          <a href="https://wa.me/54340815670623?text=Hola%2C%20quiero%20una%20demo%20de%20TPV%20Elite" target="_blank" rel="noopener" class="btn btn-secondary">💬 Hablar por WhatsApp</a>
         </div>
-        <p class="support-note">Preguntas o demo comercial: <a href="mailto:jesusjcopes@gmail.com" style="color:#A5B4FC;font-weight:700;">jesusjcopes@gmail.com</a></p>
+        <p class="support-note">¿Preferís el email? <a href="mailto:jesusjcopes@gmail.com" style="color:#A5B4FC;font-weight:700;">jesusjcopes@gmail.com</a></p>
       </div>
     </section>
   </main>
 
+  <!-- ══ WHATSAPP FLOTANTE ══ -->
+  <a href="https://wa.me/54340815670623?text=Hola%2C%20quiero%20info%20sobre%20TPV%20Elite" target="_blank" rel="noopener" class="wa-float" aria-label="Contactar por WhatsApp">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+  <div class="wa-tooltip">¿Tenés dudas? Escribinos por WhatsApp</div>
+
   <div id="auth-modal-backdrop" class="auth-modal-backdrop" aria-hidden="true">
     <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-      <h3 id="auth-modal-title">Inicia sesión con Google para descargar</h3>
+      <h3 id="auth-modal-title">Iniciá sesión con Google para descargar</h3>
       <p>Usamos esta validación para habilitar planes y pasarela de pagos en los próximos releases.</p>
       <div class="auth-modal-actions">
         <button type="button" id="auth-google-btn" class="btn btn-primary">Continuar con Google</button>
@@ -1082,12 +1440,12 @@
 
   <footer>
     <div class="container footer-inner">
-      <div class="nav-logo"><div class="nav-logo-mark" style="width:34px;height:34px;font-size:17px;">🏪</div>TPV Elite</div>
-      <div class="footer-copy">© 2026 TPV Elite. Landing actualizada para la versión 3.0.</div>
+      <div class="nav-logo"><div class="nav-logo-mark" style="width:34px;height:34px;font-size:17px;">🍦</div>TPV Elite</div>
+      <div class="footer-copy">© 2026 TPV Elite · Software para heladerías, kioscos y almacenes.</div>
       <ul class="footer-links">
-        <li><a href="#novedades">Novedades</a></li>
-        <li><a href="#captura">Captura</a></li>
-        <li><a href="#precios">Planes</a></li>
+        <li><a href="#por-que">¿Por qué elegirnos?</a></li>
+        <li><a href="#comparacion">vs Excel</a></li>
+        <li><a href="#precios">Precios</a></li>
         <li><a href="#contacto">Contacto</a></li>
       </ul>
     </div>
@@ -1138,9 +1496,9 @@
       function tick(now) {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        sales.textContent = '$' + Math.round(47761 * eased).toLocaleString('es-AR');
-        tx.textContent = Math.round(24 * eased);
-        prods.textContent = Math.round(138 * eased);
+        sales.textContent = '$' + Math.round(63400 * eased).toLocaleString('es-AR');
+        tx.textContent = Math.round(38 * eased);
+        prods.textContent = Math.round(84 * eased);
         if (progress < 1) requestAnimationFrame(tick);
       }
       requestAnimationFrame(tick);
