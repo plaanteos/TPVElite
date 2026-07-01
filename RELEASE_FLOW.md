@@ -36,17 +36,25 @@ Publicación automática a Surge (incluye copia de instalador):
 node scripts/deploy-update.mjs
 ```
 
+`deploy-update` ahora compila `dist/TPVElite_Setup.exe` automáticamente antes de publicar.
+
 Opciones de deploy:
 
 ```bash
 # Publicar en otro dominio
 node scripts/deploy-update.mjs --domain mi-dominio.surge.sh
 
+# Usar un Python específico para compilar el instalador
+node scripts/deploy-update.mjs --python "C:/ruta/python.exe"
+
 # Solo copiar EXE y validar (sin publicar)
 node scripts/deploy-update.mjs --no-surge
 
 # Publicar sin copiar EXE (si ya está sincronizado)
 node scripts/deploy-update.mjs --skip-copy-exe
+
+# Omitir compilación del instalador (avanzado)
+node scripts/deploy-update.mjs --skip-build-exe
 ```
 
 ```bash
