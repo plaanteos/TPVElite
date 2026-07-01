@@ -1,11 +1,10 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/health", "destination": "/api/health" },
     { "source": "/assets/(.*)", "destination": "/landing/assets/$1" },
     { "source": "/social-preview.svg", "destination": "/landing/social-preview.svg" },
     { "source": "/version.json", "destination": "/landing/version.json" },
-    { "source": "/(.*)", "destination": "/landing/index.html" }
+    { "source": "/", "destination": "/landing/index.html" },
+    { "source": "/((?!api/).*)", "destination": "/landing/index.html" }
   ]
 }
