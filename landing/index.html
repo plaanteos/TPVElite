@@ -1622,7 +1622,9 @@
     businessTrack.innerHTML = businessMarkup + businessMarkup;
 
     const GOOGLE_CLIENT_ID = '750768103128-1ocko2b20ppjh835s2dmu7ir2u4ph8qp.apps.googleusercontent.com';
-    const API_BASE = String(window.TPV_API_BASE || '').trim().replace(/\/$/, '');
+    const configuredApiBase = String(window.TPV_API_BASE || '').trim().replace(/\/$/, '');
+    const isVercelHost = /\.vercel\.app$/i.test(window.location.hostname);
+    const API_BASE = configuredApiBase || (isVercelHost ? window.location.origin : '');
     const HAS_BACKEND_GATE = Boolean(API_BASE);
     const DIRECT_INSTALLER_URL = 'https://tpvelite.surge.sh/TPVElite_Setup.exe';
     const STORAGE_KEY = 'tpvelite-auth-state';
