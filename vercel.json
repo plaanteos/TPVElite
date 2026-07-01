@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "^/$", "dest": "/landing/index.html" },
+    { "src": "^/(assets/.*)$", "dest": "/landing/$1" },
+    { "src": "^/(social-preview\.svg)$", "dest": "/landing/$1" },
+    { "src": "^/(version\.json)$", "dest": "/landing/$1" },
+    { "src": "^(.*)$", "dest": "/landing/index.html" }
+  ]
+}
