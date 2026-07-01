@@ -9,7 +9,7 @@ const appConfigPath = path.join(root, 'app', 'config.json');
 const changelogPath = path.join(root, 'CHANGELOG.md');
 
 function parseArgs(argv) {
-  const args = { bump: 'patch', changelog: null, set: null };
+  const args = { bump: 'patch', changelog: null, set: null, build: null, forceUpdate: null };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--changelog') {
@@ -18,11 +18,29 @@ function parseArgs(argv) {
     } else if (arg === '--set') {
       args.set = argv[i + 1] || '';
       i += 1;
+    } else if (arg === '--build') {
+      args.build = argv[i + 1] || '';
+      i += 1;
+    } else if (arg === '--force-update') {
+      args.forceUpdate = true;
+    } else if (arg === '--no-force-update') {
+      args.forceUpdate = false;
     } else if (['major', 'minor', 'patch'].includes(arg)) {
       args.bump = arg;
     }
   }
   return args;
+}
+
+function buildStamp() {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mi = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}.${hh}${mi}${ss}`;
 }
 
 function bumpSemver(version, bump) {
@@ -51,6 +69,20 @@ function updateAppMainVersion(content, newVersion) {
   }
 
   return updated;
+}
+
+function updateAppMainBuild(content, newBuild) {
+  const appBuildPattern = /APP_BUILD\s*=\s*"([^"]+)"/;
+  if (appBuildPattern.test(content)) {
+    return content.replace(appBuildPattern, `APP_BUILD = "${newBuild}"`);
+  }
+
+  const updateUrlPattern = /UPDATE_URL\s*=\s*"([^"]+)"/;
+  if (updateUrlPattern.test(content)) {
+    return content.replace(updateUrlPattern, `APP_BUILD = "${newBuild}"\nUPDATE_URL  = "$1"`);
+  }
+
+  throw new Error('No se pudo ubicar APP_BUILD/UPDATE_URL para sincronizar build en app/main.py');
 }
 
 function ensureFile(filePath) {
@@ -149,16 +181,26 @@ function main() {
   }
 
   const newVersion = args.set ? args.set : bumpSemver(currentVersion, args.bump);
+  const newBuild = (typeof args.build === 'string' && args.build.trim())
+    ? args.build.trim()
+    : buildStamp();
   const releaseNote = (typeof args.changelog === 'string' && args.changelog.trim())
     ? args.changelog.trim()
     : `Release ${newVersion}`;
 
   landingVersion.version = newVersion;
+  landingVersion.build = newBuild;
+  if (args.forceUpdate !== null) {
+    landingVersion.force_update = args.forceUpdate;
+  } else if (typeof landingVersion.force_update === 'undefined') {
+    landingVersion.force_update = false;
+  }
   landingVersion.changelog = releaseNote;
   fs.writeFileSync(landingVersionPath, `${JSON.stringify(landingVersion, null, 2)}\n`, 'utf8');
 
   const appMainRaw = fs.readFileSync(appMainPath, 'utf8');
-  const appMainUpdated = updateAppMainVersion(appMainRaw, newVersion);
+  const appMainVersionUpdated = updateAppMainVersion(appMainRaw, newVersion);
+  const appMainUpdated = updateAppMainBuild(appMainVersionUpdated, newBuild);
   fs.writeFileSync(appMainPath, appMainUpdated, 'utf8');
 
   if (fs.existsSync(appConfigPath)) {
@@ -166,6 +208,7 @@ function main() {
     const appConfig = JSON.parse(appConfigRaw);
     appConfig.app = appConfig.app || {};
     appConfig.app.version = newVersion;
+    appConfig.app.build = newBuild;
     fs.writeFileSync(appConfigPath, `${JSON.stringify(appConfig, null, 4)}\n`, 'utf8');
   }
 
@@ -173,6 +216,7 @@ function main() {
 
   console.log(`Version actual: ${currentVersion}`);
   console.log(`Version nueva : ${newVersion}`);
+  console.log(`Build nuevo   : ${newBuild}`);
   console.log('Archivos actualizados:');
   console.log('- app/main.py');
   console.log('- landing/version.json');

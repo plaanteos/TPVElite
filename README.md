@@ -134,6 +134,29 @@ pytest
 
 ---
 
+## Automatic Release and Update
+
+Quick release with version/build sync:
+
+```bash
+npm run release
+```
+
+Release and publish installer + landing to Surge:
+
+```bash
+npm run release:deploy
+```
+
+Manual options:
+
+```bash
+node scripts/release.mjs patch --changelog "Hotfix checkout"
+node scripts/release.mjs patch --force-update --deploy --domain tpvelite.surge.sh
+```
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |

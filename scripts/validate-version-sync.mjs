@@ -14,25 +14,46 @@ function readAppVersion() {
   return match[1];
 }
 
+function readAppBuild() {
+  const content = fs.readFileSync(appMainPath, 'utf8');
+  const match = content.match(/APP_BUILD\s*=\s*"([^"]+)"/);
+  if (!match) {
+    throw new Error('No se encontro APP_BUILD en app/main.py');
+  }
+  return match[1];
+}
+
 function readLandingVersion() {
   const raw = fs.readFileSync(landingVersionPath, 'utf8');
   const json = JSON.parse(raw);
   if (!json.version) {
     throw new Error('landing/version.json no contiene version');
   }
-  return String(json.version).trim();
+  if (!json.build) {
+    throw new Error('landing/version.json no contiene build');
+  }
+  return {
+    version: String(json.version).trim(),
+    build: String(json.build).trim(),
+  };
 }
 
 function main() {
   const appVersion = readAppVersion();
-  const landingVersion = readLandingVersion();
+  const appBuild = readAppBuild();
+  const landing = readLandingVersion();
 
-  if (appVersion !== landingVersion) {
-    console.error(`Desincronizacion de versiones: app=${appVersion}, landing=${landingVersion}`);
+  if (appVersion !== landing.version) {
+    console.error(`Desincronizacion de versiones: app=${appVersion}, landing=${landing.version}`);
     process.exit(1);
   }
 
-  console.log(`Version sincronizada OK: ${appVersion}`);
+  if (appBuild !== landing.build) {
+    console.error(`Desincronizacion de build: app=${appBuild}, landing=${landing.build}`);
+    process.exit(1);
+  }
+
+  console.log(`Version/build sincronizados OK: v${appVersion} build ${appBuild}`);
 }
 
 main();

@@ -5,6 +5,7 @@ Este flujo mantiene estable la funcion de actualizacion en la app.
 ## Regla principal
 
 - `app/main.py` y `landing/version.json` siempre deben tener la misma version.
+- `APP_BUILD` y `landing/version.json.build` siempre deben quedar sincronizados.
 - Cada deploy de release incrementa al menos el patch (`x.y.z` -> `x.y.z+1`).
 - Cada bump agrega una entrada en `CHANGELOG.md` con fecha/hora, autor y commit base.
 
@@ -16,14 +17,37 @@ Flujo completo (recomendado):
 
 ```bash
 node scripts/release.mjs patch --changelog "Texto breve de cambios"
+
+# release + deploy a Surge en una sola corrida
+node scripts/release.mjs patch --deploy --force-update
 ```
 
 Este comando hace en una sola corrida:
 
 - bump de version
+- bump de build (timestamp automático)
 - validacion de sincronia
 - commit automatico (`chore(release): vX.Y.Z`)
 - tag anotado (`vX.Y.Z`)
+
+Publicación automática a Surge (incluye copia de instalador):
+
+```bash
+node scripts/deploy-update.mjs
+```
+
+Opciones de deploy:
+
+```bash
+# Publicar en otro dominio
+node scripts/deploy-update.mjs --domain mi-dominio.surge.sh
+
+# Solo copiar EXE y validar (sin publicar)
+node scripts/deploy-update.mjs --no-surge
+
+# Publicar sin copiar EXE (si ya está sincronizado)
+node scripts/deploy-update.mjs --skip-copy-exe
+```
 
 ```bash
 node scripts/bump-version.mjs patch --changelog "Texto breve de cambios"
@@ -75,5 +99,10 @@ git push origin --tags
 
 ## Nota sobre updater
 
-La app compara `APP_VERSION` contra `landing/version.json`.
-Si no subes version en cada release, el cartel no se mostrara en clientes existentes.
+La app compara `APP_VERSION`, `APP_BUILD`, `version.json.build` y `force_update`.
+
+Dispara actualización cuando:
+
+- `version` remota es mayor
+- misma `version` pero `build` distinto
+- `force_update=true`

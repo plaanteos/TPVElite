@@ -35,7 +35,12 @@ function parseArgs(argv) {
     bump: 'patch',
     set: null,
     changelog: null,
+    build: null,
+    forceUpdate: null,
     noTag: false,
+    deploy: false,
+    domain: null,
+    skipCopyExe: false,
   };
 
   for (let i = 2; i < argv.length; i += 1) {
@@ -55,6 +60,38 @@ function parseArgs(argv) {
 
     if (arg === '--no-tag') {
       args.noTag = true;
+      continue;
+    }
+
+    if (arg === '--build') {
+      args.build = argv[i + 1] || '';
+      i += 1;
+      continue;
+    }
+
+    if (arg === '--force-update') {
+      args.forceUpdate = true;
+      continue;
+    }
+
+    if (arg === '--no-force-update') {
+      args.forceUpdate = false;
+      continue;
+    }
+
+    if (arg === '--deploy') {
+      args.deploy = true;
+      continue;
+    }
+
+    if (arg === '--domain') {
+      args.domain = argv[i + 1] || '';
+      i += 1;
+      continue;
+    }
+
+    if (arg === '--skip-copy-exe') {
+      args.skipCopyExe = true;
       continue;
     }
 
@@ -173,6 +210,32 @@ function buildBumpCommand(args) {
     parts.push('--changelog', escapeArg(args.changelog));
   }
 
+  if (typeof args.build === 'string' && args.build.trim()) {
+    parts.push('--build', escapeArg(args.build.trim()));
+  }
+
+  if (args.forceUpdate === true) {
+    parts.push('--force-update');
+  }
+
+  if (args.forceUpdate === false) {
+    parts.push('--no-force-update');
+  }
+
+  return parts.join(' ');
+}
+
+function buildDeployCommand(args) {
+  const parts = ['node', 'scripts/deploy-update.mjs'];
+
+  if (typeof args.domain === 'string' && args.domain.trim()) {
+    parts.push('--domain', escapeArg(args.domain.trim()));
+  }
+
+  if (args.skipCopyExe) {
+    parts.push('--skip-copy-exe');
+  }
+
   return parts.join(' ');
 }
 
@@ -216,6 +279,14 @@ function main() {
   } else {
     console.log('- tag: omitido (--no-tag)');
   }
+
+  if (args.deploy) {
+    console.log('- deploy: surge');
+    run(buildDeployCommand(args));
+  } else {
+    console.log('- deploy: omitido (usa --deploy para publicar a Surge)');
+  }
+
   console.log('');
   console.log('Siguientes comandos sugeridos:');
   console.log(`- git push origin ${branch}`);
