@@ -1936,6 +1936,45 @@
 
     initGoogleGate();
 
+    function handleDesktopCheckoutIntent() {
+      const params = new URLSearchParams(window.location.search || '');
+      const desktopCheckout = params.get('desktop_checkout') === '1';
+      const planCode = String(params.get('plan') || '').trim().toLowerCase();
+
+      if (!desktopCheckout) return;
+
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('desktop_checkout');
+      cleanUrl.searchParams.delete('plan');
+      cleanUrl.searchParams.delete('source');
+      window.history.replaceState({}, '', cleanUrl.toString());
+
+      if (!['basico', 'pro', 'super'].includes(planCode)) {
+        alert('No se pudo iniciar checkout: plan inválido.');
+        return;
+      }
+
+      pendingAction = {
+        type: 'checkout',
+        context: `desktop_${planCode}`,
+        planCode
+      };
+
+      if (!HAS_BACKEND_GATE) {
+        alert('Checkout de MercadoPago no disponible en este entorno.');
+        return;
+      }
+
+      const state = getAuthState();
+      if (state?.sessionToken && state?.user?.email) {
+        triggerPlanCheckout(planCode);
+      } else {
+        openAuthModal();
+      }
+    }
+
+    handleDesktopCheckoutIntent();
+
     function checkUpdates() {
       fetch('./version.json')
         .then((response) => response.ok ? response.json() : null)

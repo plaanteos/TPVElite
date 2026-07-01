@@ -119,6 +119,9 @@ Requires [PyInstaller](https://pyinstaller.org/):
 ```bash
 pip install pyinstaller
 python -m PyInstaller --onefile --noconsole --name TPVElite_Setup --add-data "app;app" setup.pyw
+
+# con icono embebido
+python -m PyInstaller --onefile --noconsole --name TPVElite_Setup --icon app/tpvelite.ico --add-data "app;app" setup.pyw
 ```
 
 The output will be at `dist/TPVElite_Setup.exe`.

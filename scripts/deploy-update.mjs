@@ -62,6 +62,7 @@ function buildInstaller(args) {
       '--onefile',
       '--noconsole',
       '--name', 'TPVElite_Setup',
+      '--icon', 'app/tpvelite.ico',
       '--add-data', 'app;app',
       'setup.pyw',
     ],

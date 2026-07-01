@@ -49,6 +49,7 @@ import logging
 APP_VERSION = "3.0.7"
 APP_BUILD = "20260701.202956"
 UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
+CHECKOUT_WEB_URL = "https://tpv-elite.vercel.app/"
 
 # Configurar e importar matplotlib
 try:
@@ -1609,6 +1610,13 @@ class ModernTPV:
     
     def _setup_window(self):
         """Configura la ventana principal"""
+        if sys.platform == 'win32':
+            try:
+                import ctypes
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("TPVElite.Desktop")
+            except Exception:
+                pass
+
         # Obtener dimensiones de pantalla
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -1630,9 +1638,15 @@ class ModernTPV:
         
         # Intentar cargar ícono
         try:
-            icon_path = resource_path('icon.ico')
-            if os.path.exists(icon_path):
-                self.root.iconbitmap(icon_path)
+            icon_candidates = [
+                resource_path('tpvelite.ico'),
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tpvelite.ico'),
+                resource_path('icon.ico'),
+            ]
+            for icon_path in icon_candidates:
+                if os.path.exists(icon_path):
+                    self.root.iconbitmap(default=icon_path)
+                    break
         except:
             pass
     
@@ -3132,7 +3146,7 @@ class ModernTPV:
             ).pack(anchor='w', pady=(4, 0))
 
         info_text = (
-            "Tu plan quedara registrado. La activacion de cobro se conectara con MercadoPago en el siguiente paso."
+            "Al guardar, abriremos el checkout seguro para cargar tu tarjeta y dejar el plan activo."
         )
         tk.Label(
             container,
@@ -3162,7 +3176,20 @@ class ModernTPV:
             if not ok:
                 messagebox.showerror("Error", msg, parent=dialog)
                 return
-            messagebox.showinfo("Plan guardado", msg, parent=dialog)
+
+            checkout_ok = self._open_plan_checkout_web(plan)
+            if checkout_ok:
+                messagebox.showinfo(
+                    "Plan guardado",
+                    "Plan registrado correctamente. Continua el pago en el navegador para activar el cobro.",
+                    parent=dialog,
+                )
+            else:
+                messagebox.showwarning(
+                    "Plan guardado",
+                    "Plan registrado, pero no se pudo abrir el navegador automaticamente. Abre manualmente el checkout desde la URL mostrada.",
+                    parent=dialog,
+                )
             _close_dialog(True)
 
         tk.Button(
@@ -3205,6 +3232,36 @@ class ModernTPV:
             return False
 
         return True
+
+    def _open_plan_checkout_web(self, plan_code: str) -> bool:
+        """Abre el checkout web con el plan seleccionado para completar pago con tarjeta."""
+        try:
+            import webbrowser
+            from urllib.parse import urlencode
+
+            plan = str(plan_code or '').strip().lower()
+            if plan not in {'basico', 'pro', 'super'}:
+                return False
+
+            params = urlencode({
+                'desktop_checkout': '1',
+                'plan': plan,
+                'source': 'desktop_app',
+            })
+            url = f"{CHECKOUT_WEB_URL}?{params}#precios"
+
+            opened = webbrowser.open(url)
+            if not opened:
+                logger.warning(f"No se pudo abrir navegador automáticamente para checkout: {url}")
+                self.root.clipboard_clear()
+                self.root.clipboard_append(url)
+                return False
+
+            logger.info(f"Checkout web abierto para plan '{plan}': {url}")
+            return True
+        except Exception as e:
+            logger.error(f"Error abriendo checkout web: {e}")
+            return False
 
     def show_main_app(self):
         """Muestra la aplicación principal después del login"""
@@ -8158,6 +8215,17 @@ Python: {sys.version.split()[0]}
             )
             suscripcion = estado.get('suscripcion') or {}
             plan = suscripcion.get('plan_nombre') or "Sin plan seleccionado"
+            estado_bd = str(suscripcion.get('estado') or '').strip().lower()
+
+            if estado_bd == 'activa':
+                estado_cobro = 'Activo'
+                accion_cobro = 'Cobro habilitado correctamente.'
+            elif estado.get('plan_seleccionado'):
+                estado_cobro = 'Pendiente'
+                accion_cobro = 'Completa el checkout con tarjeta para activar el cobro.'
+            else:
+                estado_cobro = 'Sin configurar'
+                accion_cobro = 'Selecciona un plan para iniciar el proceso de cobro.'
 
             if estado.get('trial_vencido') and not estado.get('plan_seleccionado'):
                 estado_texto = "Trial vencido - debes seleccionar un plan"
@@ -8171,6 +8239,8 @@ Python: {sys.version.split()[0]}
 
             text = (
                 f"Estado: {estado_texto}\n"
+                f"Estado de cobro: {estado_cobro}\n"
+                f"Acción: {accion_cobro}\n"
                 f"Plan actual: {plan}\n"
                 f"Inicio trial: {trial_inicio}\n"
                 f"Fin trial: {trial_fin}"

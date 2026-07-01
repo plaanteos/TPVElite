@@ -446,7 +446,14 @@ class Installer:
                 winreg.SetValueEx(k, "DisplayVersion",  0, winreg.REG_SZ,    APP_VERSION)
                 winreg.SetValueEx(k, "Publisher",       0, winreg.REG_SZ,    APP_AUTHOR)
                 winreg.SetValueEx(k, "InstallLocation", 0, winreg.REG_SZ,    self.app_dest)
-                winreg.SetValueEx(k, "DisplayIcon",     0, winreg.REG_SZ,    pythonw)
+                icon_path = os.path.join(self.app_dest, "tpvelite.ico")
+                winreg.SetValueEx(
+                    k,
+                    "DisplayIcon",
+                    0,
+                    winreg.REG_SZ,
+                    icon_path if os.path.exists(icon_path) else pythonw
+                )
                 winreg.SetValueEx(k, "UninstallString", 0, winreg.REG_SZ,
                                   f'cmd /c rmdir /s /q "{self.app_dest}"')
                 winreg.SetValueEx(k, "NoModify",        0, winreg.REG_DWORD,  1)
