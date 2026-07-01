@@ -243,6 +243,25 @@ def _create_test_schema(db: DatabaseManager):
         )
     """)
 
+    # Tabla suscripciones
+    db.execute_query("""
+        CREATE TABLE IF NOT EXISTS suscripciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            plan_codigo TEXT,
+            plan_nombre TEXT,
+            plan_precio_mensual REAL,
+            estado TEXT NOT NULL DEFAULT 'trial',
+            trial_inicio TIMESTAMP,
+            trial_fin TIMESTAMP,
+            plan_seleccionado_en TIMESTAMP,
+            ultima_notificacion_trial TIMESTAMP,
+            creado_por_usuario_id INTEGER,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (creado_por_usuario_id) REFERENCES usuarios (id)
+        )
+    """)
+
 
 def _insert_test_data(db: DatabaseManager):
     """Inserta datos de prueba en la base de datos"""

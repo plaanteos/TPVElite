@@ -5,7 +5,7 @@ Versión: 2.0.0
 Descripción: Capa de servicios con lógica de negocio
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timedelta
 import logging
 import re
@@ -232,6 +232,160 @@ class AuthService:
         required_level = roles_hierarchy.get(required_role, 0)
         
         return user_level >= required_level
+
+
+class SubscriptionService:
+    """Servicio de suscripción (trial + selección de plan)."""
+
+    PLANES = {
+        'basico': {'nombre': 'Plan Basico', 'precio': 10.0},
+        'pro': {'nombre': 'Plan PRO', 'precio': 20.0},
+        'super': {'nombre': 'Plan SUPER', 'precio': 35.0},
+    }
+
+    def __init__(self, db: DatabaseManager):
+        self.db = db
+
+    def obtener_suscripcion(self) -> Optional[Dict[str, Any]]:
+        row = self.db.fetch_one(
+            "SELECT * FROM suscripciones ORDER BY id DESC LIMIT 1"
+        )
+        if not row:
+            return None
+        return dict(row)
+
+    def crear_trial_inicial(self, usuario_id: int) -> Dict[str, Any]:
+        existente = self.obtener_suscripcion()
+        if existente:
+            return existente
+
+        ahora = datetime.now()
+        trial_fin = ahora + timedelta(days=30)
+        self.db.execute_query(
+            """
+            INSERT INTO suscripciones (
+                plan_codigo,
+                plan_nombre,
+                plan_precio_mensual,
+                estado,
+                trial_inicio,
+                trial_fin,
+                plan_seleccionado_en,
+                creado_por_usuario_id,
+                fecha_creacion,
+                fecha_actualizacion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                None,
+                None,
+                None,
+                'trial',
+                ahora,
+                trial_fin,
+                None,
+                usuario_id,
+                ahora,
+                ahora,
+            )
+        )
+        return self.obtener_suscripcion() or {}
+
+    def seleccionar_plan(self, plan_codigo: str, usuario_id: int) -> Tuple[bool, str]:
+        plan = self.PLANES.get(plan_codigo)
+        if not plan:
+            return False, "Plan seleccionado invalido"
+
+        suscripcion = self.obtener_suscripcion()
+        if not suscripcion:
+            suscripcion = self.crear_trial_inicial(usuario_id)
+
+        ahora = datetime.now()
+        estado_objetivo = 'trial'
+        trial_fin_raw = suscripcion.get('trial_fin')
+        if trial_fin_raw:
+            try:
+                trial_fin = datetime.fromisoformat(str(trial_fin_raw))
+                if ahora > trial_fin:
+                    estado_objetivo = 'pendiente_plan'
+            except Exception:
+                pass
+
+        ok = self.db.execute_query(
+            """
+            UPDATE suscripciones
+            SET plan_codigo = ?,
+                plan_nombre = ?,
+                plan_precio_mensual = ?,
+                plan_seleccionado_en = ?,
+                estado = ?,
+                fecha_actualizacion = ?
+            WHERE id = ?
+            """,
+            (
+                plan_codigo,
+                plan['nombre'],
+                plan['precio'],
+                ahora,
+                estado_objetivo,
+                ahora,
+                suscripcion['id'],
+            )
+        )
+        if not ok:
+            return False, "No se pudo guardar el plan seleccionado"
+        return True, f"{plan['nombre']} seleccionado correctamente"
+
+    def obtener_estado_trial(self, usuario_id: int, primera_sesion: bool = False) -> Dict[str, Any]:
+        suscripcion = self.obtener_suscripcion()
+        if not suscripcion:
+            suscripcion = self.crear_trial_inicial(usuario_id)
+            return {
+                'es_primer_inicio': primera_sesion,
+                'plan_seleccionado': False,
+                'trial_activo': True,
+                'trial_vencido': False,
+                'dias_restantes': 30,
+                'suscripcion': suscripcion,
+            }
+
+        ahora = datetime.now()
+        trial_fin = None
+        if suscripcion.get('trial_fin'):
+            try:
+                trial_fin = datetime.fromisoformat(str(suscripcion['trial_fin']))
+            except Exception:
+                trial_fin = None
+
+        dias_restantes = 0
+        trial_activo = False
+        trial_vencido = False
+        if trial_fin:
+            dias_restantes = max((trial_fin.date() - ahora.date()).days, 0)
+            trial_activo = ahora <= trial_fin
+            trial_vencido = ahora > trial_fin
+
+        plan_seleccionado = bool(suscripcion.get('plan_codigo'))
+
+        return {
+            'es_primer_inicio': False,
+            'plan_seleccionado': plan_seleccionado,
+            'trial_activo': trial_activo,
+            'trial_vencido': trial_vencido,
+            'dias_restantes': dias_restantes,
+            'suscripcion': suscripcion,
+        }
+
+    def registrar_notificacion_trial(self, suscripcion_id: int) -> None:
+        ahora = datetime.now()
+        self.db.execute_query(
+            """
+            UPDATE suscripciones
+            SET ultima_notificacion_trial = ?, fecha_actualizacion = ?
+            WHERE id = ?
+            """,
+            (ahora, ahora, suscripcion_id)
+        )
 
 
 class ProductoService:

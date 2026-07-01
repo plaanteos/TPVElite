@@ -65,7 +65,7 @@ except Exception as e:
 
 # Importar módulos propios
 from database import DatabaseManager
-from services import AuthService, ProductoService, VentaService
+from services import AuthService, ProductoService, VentaService, SubscriptionService
 from models import Producto, Venta, DetalleVenta, Usuario
 from utils import (setup_logging, load_config, save_config, resource_path, format_currency,
                    ensure_directory, get_app_data_dir, Validator, ColorHelper)
@@ -87,6 +87,15 @@ def _parse_version(v: str):
         return (0,)
 
 
+def _default_download_url() -> str:
+    """Deriva URL del instalador usando la misma base de UPDATE_URL."""
+    try:
+        base = UPDATE_URL.rsplit('/', 1)[0]
+        return f"{base}/TPVElite_Setup.exe"
+    except Exception:
+        return ""
+
+
 def check_for_updates(root: tk.Tk):
     """
     Verifica en segundo plano si hay una versión más nueva disponible.
@@ -98,11 +107,15 @@ def check_for_updates(root: tk.Tk):
                 data = json.loads(resp.read().decode())
 
             remote_version  = data.get('version', '0')
-            download_url    = data.get('download_url', '')
+            download_url    = data.get('download_url', '') or _default_download_url()
             changelog       = data.get('changelog', '')
 
             if _parse_version(remote_version) <= _parse_version(APP_VERSION):
                 return  # sin actualizaciones
+
+            if not download_url:
+                logger.warning("Actualización detectada sin URL de descarga válida")
+                return
 
             # Mostrar diálogo en el hilo principal
             root.after(0, lambda: _prompt_update(root, remote_version, download_url, changelog))
@@ -155,7 +168,8 @@ def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str):
                 urllib.request.urlretrieve(url, tmp.name)
                 root.after(0, lambda: _launch_installer(root, prog_win, tmp.name))
             except Exception as error:
-                root.after(0, lambda: _download_error(prog_win, str(error)))
+                detail = str(error) if str(error).strip() else error.__class__.__name__
+                root.after(0, lambda: _download_error(prog_win, detail))
 
         threading.Thread(target=_download, daemon=True).start()
 
@@ -238,12 +252,22 @@ def _launch_installer(root: tk.Tk, prog_win: tk.Toplevel, exe_path: str):
 
     # Actualización tipo "one-click": sin wizard y sobre la instalación actual.
     install_dir = os.path.dirname(os.path.abspath(__file__))
-    subprocess.Popen([
-        exe_path,
-        '--auto-update',
-        '--target', install_dir,
-        '--restart'
-    ])
+    env = os.environ.copy()
+    # Evita heredar rutas temporales de PyInstaller/Tcl que rompen el proceso hijo.
+    for key in ('TCL_LIBRARY', 'TK_LIBRARY', 'TCL_DATA', '_MEIPASS2', 'PYTHONHOME', 'PYTHONPATH'):
+        env.pop(key, None)
+    env['PYINSTALLER_RESET_ENVIRONMENT'] = '1'
+
+    subprocess.Popen(
+        [
+            exe_path,
+            '--auto-update',
+            '--target', install_dir,
+            '--restart'
+        ],
+        cwd=os.path.dirname(os.path.abspath(exe_path)),
+        env=env,
+    )
     root.destroy()
 
 
@@ -1595,6 +1619,7 @@ class ModernTPV:
         self.auth_service = AuthService(self.db)
         self.producto_service = ProductoService(self.db)
         self.venta_service = VentaService(self.db, self.producto_service)
+        self.subscription_service = SubscriptionService(self.db)
 
         logger.info(f"Servicios inicializados correctamente - DB: {db_path}")
 
@@ -2899,6 +2924,9 @@ class ModernTPV:
                     )
                     self._change_password_dialog(force_mode=True)
                     return
+                if not self._handle_subscription_post_login(user):
+                    password_entry.delete(0, 'end')
+                    return
                 self.show_main_app()
             else:
                 logger.warning(f"❌ Login fallido: {username}")
@@ -2912,6 +2940,233 @@ class ModernTPV:
 
         # Animación de entrada
         AnimationHelper.fade_in(right, duration=500)
+
+    def _handle_subscription_post_login(self, user: Usuario) -> bool:
+        """Gestiona trial/planes después de login exitoso."""
+        try:
+            row = self.db.fetch_one(
+                "SELECT COUNT(1) AS total FROM sesiones WHERE usuario_id = ?",
+                (user.id,),
+            )
+            total_sesiones = int(row['total']) if row and row['total'] is not None else 0
+            primera_sesion = total_sesiones <= 1
+
+            estado = self.subscription_service.obtener_estado_trial(
+                user.id,
+                primera_sesion=primera_sesion,
+            )
+
+            if estado['es_primer_inicio']:
+                messagebox.showinfo(
+                    "Bienvenido a TPV Elite",
+                    "Tienes 1 mes gratis. Selecciona ahora el plan que usaras al finalizar el trial."
+                )
+                return self._open_plan_selector(obligatorio=True, dias_restantes=estado['dias_restantes'])
+
+            if not estado['plan_seleccionado'] and estado['trial_activo']:
+                dias = estado['dias_restantes']
+                suscripcion = estado.get('suscripcion') or {}
+                if suscripcion.get('id'):
+                    self.subscription_service.registrar_notificacion_trial(suscripcion['id'])
+                elegir_ahora = messagebox.askyesno(
+                    "Mes gratis activo",
+                    (
+                        f"Tu cuenta tiene 1 mes gratis activo.\n"
+                        f"Te quedan {dias} dia(s) para elegir un plan.\n\n"
+                        "Puedes elegirlo ahora o continuar y hacerlo mas tarde."
+                    )
+                )
+                if elegir_ahora:
+                    return self._open_plan_selector(obligatorio=False, dias_restantes=dias)
+                return True
+
+            if not estado['plan_seleccionado'] and estado['trial_vencido']:
+                messagebox.showwarning(
+                    "Trial vencido",
+                    "Tu mes gratis finalizo. Debes elegir un plan para seguir usando la aplicacion."
+                )
+                return self._open_plan_selector(obligatorio=True, dias_restantes=0)
+
+            return True
+        except Exception as e:
+            logger.error(f"Error validando suscripcion post-login: {e}")
+            messagebox.showerror(
+                "Error",
+                "No se pudo validar el estado de suscripcion. Intenta nuevamente."
+            )
+            self.auth_service.logout()
+            return False
+
+    def _open_plan_selector(self, obligatorio: bool, dias_restantes: int) -> bool:
+        """Muestra selector de planes. Si es obligatorio, no permite continuar sin elegir."""
+        if not self.auth_service.current_user:
+            return False
+
+        selected_plan = tk.StringVar(value='basico')
+        result = {'accepted': False}
+
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Seleccion de plan")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.configure(bg=self.colors['bg_card'])
+
+        if obligatorio:
+            dialog.protocol("WM_DELETE_WINDOW", lambda: None)
+        else:
+            dialog.protocol("WM_DELETE_WINDOW", lambda: _close_dialog(False))
+
+        w, h = 620, 520
+        x = self.root.winfo_x() + max((self.root.winfo_width() - w) // 2, 0)
+        y = self.root.winfo_y() + max((self.root.winfo_height() - h) // 2, 0)
+        dialog.geometry(f"{w}x{h}+{x}+{y}")
+
+        container = tk.Frame(dialog, bg=self.colors['bg_card'], padx=24, pady=20)
+        container.pack(fill='both', expand=True)
+
+        tk.Label(
+            container,
+            text="Elige tu plan de TPV Elite",
+            font=('Segoe UI', 18, 'bold'),
+            bg=self.colors['bg_card'],
+            fg=self.colors['text_primary'],
+        ).pack(anchor='w')
+
+        subtitle = (
+            "Primer inicio detectado: deja seleccionado tu plan y seguimos."
+            if obligatorio
+            else f"Mes gratis activo. Te quedan {dias_restantes} dia(s) para decidir."
+        )
+        tk.Label(
+            container,
+            text=subtitle,
+            font=('Segoe UI', 10),
+            bg=self.colors['bg_card'],
+            fg=self.colors['text_muted'],
+            pady=8,
+            justify='left',
+            wraplength=560,
+        ).pack(anchor='w')
+
+        plans = [
+            ('basico', 'Plan Basico', 'USD 10/mes', '1 sucursal, hasta 3 empleados, hasta 3.000 productos'),
+            ('pro', 'Plan PRO', 'USD 20/mes', 'Hasta 3 sucursales, 25 empleados, dashboard y auditoria completa'),
+            ('super', 'Plan SUPER', 'USD 35/mes', 'Sucursales, empleados y productos ilimitados con funciones avanzadas'),
+        ]
+
+        for codigo, nombre, precio, detalle in plans:
+            card = tk.Frame(
+                container,
+                bg=self.colors['bg_secondary'],
+                highlightbackground=self.colors['border'],
+                highlightthickness=1,
+                padx=12,
+                pady=10,
+            )
+            card.pack(fill='x', pady=6)
+
+            radio = tk.Radiobutton(
+                card,
+                text=f"{nombre} - {precio}",
+                variable=selected_plan,
+                value=codigo,
+                font=('Segoe UI', 11, 'bold'),
+                bg=self.colors['bg_secondary'],
+                fg=self.colors['text_primary'],
+                selectcolor=self.colors['bg_secondary'],
+                activebackground=self.colors['bg_secondary'],
+                activeforeground=self.colors['text_primary'],
+                anchor='w',
+                relief='flat',
+                highlightthickness=0,
+            )
+            radio.pack(fill='x', anchor='w')
+
+            tk.Label(
+                card,
+                text=detalle,
+                font=('Segoe UI', 9),
+                bg=self.colors['bg_secondary'],
+                fg=self.colors['text_muted'],
+                justify='left',
+                wraplength=520,
+            ).pack(anchor='w', pady=(4, 0))
+
+        info_text = (
+            "Tu plan quedara registrado. La activacion de cobro se conectara con MercadoPago en el siguiente paso."
+        )
+        tk.Label(
+            container,
+            text=info_text,
+            font=('Segoe UI', 9),
+            bg=self.colors['bg_card'],
+            fg=self.colors['text_muted'],
+            wraplength=560,
+            justify='left',
+            pady=10,
+        ).pack(anchor='w')
+
+        buttons = tk.Frame(container, bg=self.colors['bg_card'])
+        buttons.pack(fill='x', pady=(6, 0))
+
+        def _close_dialog(accepted: bool):
+            result['accepted'] = accepted
+            if dialog.winfo_exists():
+                dialog.destroy()
+
+        def _confirm_plan():
+            plan = selected_plan.get()
+            ok, msg = self.subscription_service.seleccionar_plan(
+                plan,
+                self.auth_service.current_user.id,
+            )
+            if not ok:
+                messagebox.showerror("Error", msg, parent=dialog)
+                return
+            messagebox.showinfo("Plan guardado", msg, parent=dialog)
+            _close_dialog(True)
+
+        tk.Button(
+            buttons,
+            text="Guardar plan y continuar",
+            command=_confirm_plan,
+            font=('Segoe UI', 10, 'bold'),
+            bg=self.colors['success'],
+            fg=self.colors['primary_dark'],
+            bd=0,
+            padx=18,
+            pady=10,
+            cursor='hand2',
+            relief='flat',
+        ).pack(side='right')
+
+        if not obligatorio:
+            tk.Button(
+                buttons,
+                text="Lo hare mas tarde",
+                command=lambda: _close_dialog(False),
+                font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg_secondary'],
+                fg=self.colors['text_secondary'],
+                bd=0,
+                padx=14,
+                pady=10,
+                cursor='hand2',
+                relief='flat',
+            ).pack(side='right', padx=(0, 8))
+
+        dialog.wait_window()
+
+        if obligatorio and not result['accepted']:
+            messagebox.showwarning(
+                "Plan requerido",
+                "Debes seleccionar un plan para completar el ingreso inicial."
+            )
+            self.auth_service.logout()
+            return False
+
+        return True
 
     def show_main_app(self):
         """Muestra la aplicación principal después del login"""
@@ -7784,6 +8039,29 @@ Estado: {'Activo' if user.activo else 'Inactivo'}
                      text=info_text,
                      style='Info.TLabel',
                      justify='left').pack(pady=5)
+
+        # Suscripción y trial
+        subscription_card = ttk.LabelFrame(config_frame,
+                                           text="Plan y Suscripción",
+                                           style='Card.TLabelframe',
+                                           padding=20)
+        subscription_card.pack(fill='x', pady=10)
+
+        plan_info_label = ttk.Label(subscription_card,
+                                    text="Cargando estado de suscripción...",
+                                    style='Info.TLabel',
+                                    justify='left')
+        plan_info_label.pack(pady=5, anchor='w')
+
+        plan_btns = ttk.Frame(subscription_card)
+        plan_btns.pack(fill='x', pady=(8, 0))
+
+        ttk.Button(plan_btns,
+                  text="💳 Elegir / Cambiar Plan",
+                  command=lambda: self._open_plan_selector_from_settings(),
+                  style='Primary.TButton').pack(side='left', padx=5)
+
+        self._render_subscription_status(plan_info_label)
         
         # Configuración de la aplicación
         app_card = ttk.LabelFrame(config_frame,
@@ -7827,6 +8105,52 @@ Python: {sys.version.split()[0]}
                  text=system_info,
                  style='Info.TLabel',
                  justify='left').pack(pady=5)
+
+    def _render_subscription_status(self, target_label):
+        """Renderiza estado actual de suscripción en configuración."""
+        try:
+            user = self.auth_service.current_user
+            if not user:
+                target_label.configure(text="No hay sesión activa")
+                return
+
+            estado = self.subscription_service.obtener_estado_trial(
+                user.id,
+                primera_sesion=False,
+            )
+            suscripcion = estado.get('suscripcion') or {}
+            plan = suscripcion.get('plan_nombre') or "Sin plan seleccionado"
+
+            if estado.get('trial_vencido') and not estado.get('plan_seleccionado'):
+                estado_texto = "Trial vencido - debes seleccionar un plan"
+            elif estado.get('trial_activo'):
+                estado_texto = f"Trial activo ({estado.get('dias_restantes', 0)} dia(s) restantes)"
+            else:
+                estado_texto = (suscripcion.get('estado') or 'sin estado').capitalize()
+
+            trial_inicio = suscripcion.get('trial_inicio') or "-"
+            trial_fin = suscripcion.get('trial_fin') or "-"
+
+            text = (
+                f"Estado: {estado_texto}\n"
+                f"Plan actual: {plan}\n"
+                f"Inicio trial: {trial_inicio}\n"
+                f"Fin trial: {trial_fin}"
+            )
+            target_label.configure(text=text)
+        except Exception as e:
+            logger.error(f"Error renderizando suscripción en settings: {e}")
+            target_label.configure(text="No se pudo cargar el estado de suscripción")
+
+    def _open_plan_selector_from_settings(self):
+        """Abre selector de plan desde Configuración y refresca pantalla."""
+        try:
+            changed = self._open_plan_selector(obligatorio=False, dias_restantes=0)
+            if changed:
+                self.show_settings()
+        except Exception as e:
+            logger.error(f"Error abriendo selector de plan desde settings: {e}")
+            messagebox.showerror("Error", "No se pudo abrir el selector de plan")
     
     def _change_password_dialog(self, force_mode: bool = False):
         """Diálogo para cambiar contraseña"""

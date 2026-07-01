@@ -700,7 +700,7 @@
     }
 
     .pricing { background: linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.03)); }
-    .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 900px; margin: 0 auto; }
+    .pricing-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 1200px; margin: 0 auto; }
     .price-card.featured {
       border-color: var(--line-bright);
       background: linear-gradient(160deg, rgba(99,102,241,.12), rgba(17,24,39,.96));
@@ -1464,41 +1464,51 @@
       <div class="container">
         <div class="section-head center">
           <div class="section-kicker">Precios</div>
-          <h2 class="section-title">Simple, transparente y sin sorpresas</h2>
-          <p class="section-copy">Empezá gratis. Cuando el negocio necesita más, actualizás una sola vez sin mensualidades.</p>
+          <h2 class="section-title">Un mes gratis y luego elegís el plan según tu negocio</h2>
+          <p class="section-copy">Sin tarjeta para arrancar. Durante el trial usás todo y decidís con datos reales.</p>
         </div>
         <div class="pricing-grid">
           <article class="price-card reveal-scale">
-            <div class="price-tier">Starter — Gratis</div>
-            <div class="price-amount">$0 <span style="font-size:22px;color:var(--muted)">USD</span></div>
-            <div class="price-period">Para siempre · sin tarjeta · sin límite de tiempo</div>
+            <div class="price-tier">Plan Basico</div>
+            <div class="price-amount">$10 <span style="font-size:22px;color:var(--muted)">USD</span></div>
+            <div class="price-period">por mes · ideal para negocio pequeño</div>
             <ul class="price-list">
-              <li><span class="check">✓</span><span>Ventas ilimitadas</span></li>
-              <li><span class="check">✓</span><span>Hasta 100 productos</span></li>
-              <li><span class="check">✓</span><span>1 usuario</span></li>
-              <li><span class="check">✓</span><span>Reportes básicos</span></li>
-              <li><span class="check">✓</span><span>Funciona offline</span></li>
+              <li><span class="check">✓</span><span>1 sucursal</span></li>
+              <li><span class="check">✓</span><span>Hasta 3 empleados</span></li>
+              <li><span class="check">✓</span><span>Hasta 3.000 productos</span></li>
+              <li><span class="check">✓</span><span>Ventas, stock y reportes</span></li>
             </ul>
-            <a href="#contacto" class="btn btn-secondary js-download-link" data-download-context="plan_starter">Probar gratis</a>
+            <button type="button" class="btn btn-secondary js-plan-checkout" data-plan-code="basico">Elegir Basico</button>
           </article>
 
           <article class="price-card featured reveal-scale">
-            <div class="price-tier">Elite Pro</div>
-            <div class="price-amount">$15 <span style="font-size:22px;color:var(--muted)">USD</span></div>
-            <div class="price-period">Pago único · licencia de por vida · sin mensualidad</div>
+            <div class="price-tier">Plan PRO</div>
+            <div class="price-amount">$20 <span style="font-size:22px;color:var(--muted)">USD</span></div>
+            <div class="price-period">por mes · para crecimiento sostenido</div>
             <ul class="price-list">
-              <li><span class="check">✓</span><span>Todo lo del plan Starter</span></li>
-              <li><span class="check">✓</span><span>Productos ilimitados</span></li>
-              <li><span class="check">✓</span><span>Usuarios ilimitados con roles</span></li>
-              <li><span class="check">✓</span><span>Reportes avanzados y exportación PDF</span></li>
-              <li><span class="check">✓</span><span>Gestión completa de pedidos</span></li>
-              <li><span class="check">✓</span><span>Actualizaciones gratuitas de por vida</span></li>
-              <li><span class="check">✓</span><span>Soporte prioritario por WhatsApp</span></li>
+              <li><span class="check">✓</span><span>Hasta 3 sucursales</span></li>
+              <li><span class="check">✓</span><span>Hasta 25 empleados</span></li>
+              <li><span class="check">✓</span><span>Hasta 20.000 productos</span></li>
+              <li><span class="check">✓</span><span>Auditoría y permisos avanzados</span></li>
             </ul>
-            <a href="#contacto" class="btn btn-primary js-download-link" data-download-context="plan_pro">Probar gratis</a>
-            <div class="price-urgency">🎁 Instalación gratuita incluida este mes</div>
+            <button type="button" class="btn btn-primary js-plan-checkout" data-plan-code="pro">Elegir PRO</button>
+            <div class="price-urgency">30 días gratis antes del primer cobro</div>
+          </article>
+
+          <article class="price-card reveal-scale">
+            <div class="price-tier">Plan SUPER</div>
+            <div class="price-amount">$35 <span style="font-size:22px;color:var(--muted)">USD</span></div>
+            <div class="price-period">por mes · operación multi-sucursal completa</div>
+            <ul class="price-list">
+              <li><span class="check">✓</span><span>Sucursales ilimitadas</span></li>
+              <li><span class="check">✓</span><span>Empleados y productos ilimitados</span></li>
+              <li><span class="check">✓</span><span>Transferencias y trazabilidad</span></li>
+              <li><span class="check">✓</span><span>Promociones y fidelización avanzadas</span></li>
+            </ul>
+            <button type="button" class="btn btn-secondary js-plan-checkout" data-plan-code="super">Elegir SUPER</button>
           </article>
         </div>
+        <p class="section-copy" style="margin-top:18px;">Si querés probar primero, podés descargar sin pagar y activar el plan dentro del mes de trial.</p>
       </div>
     </section>
 
@@ -1526,7 +1536,7 @@
   <div id="auth-modal-backdrop" class="auth-modal-backdrop" aria-hidden="true">
     <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
       <h3 id="auth-modal-title">Iniciá sesión con Google para descargar</h3>
-      <p>Usamos esta validación para habilitar planes y pasarela de pagos en los próximos releases.</p>
+      <p id="auth-modal-text">Usamos esta validación para habilitar descarga segura y gestión de planes.</p>
       <div class="auth-modal-actions">
         <button type="button" id="auth-google-btn" class="btn btn-primary">Continuar con Google</button>
         <button type="button" id="auth-cancel-btn" class="btn btn-secondary">Cancelar</button>
@@ -1617,7 +1627,7 @@
     const DIRECT_INSTALLER_URL = 'https://tpvelite.surge.sh/TPVElite_Setup.exe';
     const STORAGE_KEY = 'tpvelite-auth-state';
     let googleTokenClient = null;
-    let pendingDownloadContext = 'landing';
+    let pendingAction = { type: 'download', context: 'landing', planCode: '' };
 
     function getAuthState() {
       try {
@@ -1676,6 +1686,35 @@
       return data;
     }
 
+    async function createPlanCheckout(planCode) {
+      if (!HAS_BACKEND_GATE) {
+        throw new Error('Backend de billing no configurado');
+      }
+
+      const state = getAuthState();
+      const sessionToken = state?.sessionToken;
+
+      if (!sessionToken) {
+        throw new Error('Sesión faltante');
+      }
+
+      const response = await fetch(`${API_BASE}/api/billing/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`
+        },
+        body: JSON.stringify({ planCode })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || 'No se pudo iniciar checkout');
+      }
+
+      return data.checkoutUrl || data.sandboxCheckoutUrl || '';
+    }
+
     async function getProtectedDownloadUrl(context) {
       if (!HAS_BACKEND_GATE) {
         throw new Error('Backend de autenticación no configurado');
@@ -1722,7 +1761,7 @@
             }
 
             try {
-              const backendAuth = await postGoogleTokenToBackend(tokenResponse.access_token, pendingDownloadContext);
+              const backendAuth = await postGoogleTokenToBackend(tokenResponse.access_token, pendingAction.context || 'landing');
               saveAuthState({
                 user: backendAuth.user,
                 sessionToken: backendAuth.sessionToken,
@@ -1730,11 +1769,15 @@
               });
 
               closeAuthModal();
-              await triggerInstallerDownload(pendingDownloadContext);
+              await runPendingAction();
             } catch (error) {
               clearAuthState();
               closeAuthModal();
-              fallbackDirectDownload(pendingDownloadContext);
+              if (pendingAction.type === 'download') {
+                fallbackDirectDownload(pendingAction.context || 'landing');
+                return;
+              }
+              alert('No se pudo validar tu cuenta con el backend.');
             }
           },
           error_callback: () => {
@@ -1750,6 +1793,16 @@
       const backdrop = document.getElementById('auth-modal-backdrop');
       const chip = document.getElementById('auth-user-chip');
       const user = getAuthState()?.user;
+      const title = document.getElementById('auth-modal-title');
+      const text = document.getElementById('auth-modal-text');
+
+      if (pendingAction.type === 'checkout') {
+        title.textContent = 'Iniciá sesión con Google para contratar tu plan';
+        text.textContent = 'Validamos tu cuenta antes de enviarte al checkout seguro de MercadoPago.';
+      } else {
+        title.textContent = 'Iniciá sesión con Google para descargar';
+        text.textContent = 'Usamos esta validación para habilitar descarga segura y gestión de planes.';
+      }
 
       if (user?.email) {
         chip.textContent = `Sesión activa: ${user.email}`;
@@ -1780,9 +1833,36 @@
       }
     }
 
-    function requestGoogleAndDownload() {
+    async function triggerPlanCheckout(planCode) {
+      try {
+        const checkoutUrl = await createPlanCheckout(planCode);
+        if (!checkoutUrl) {
+          alert('No se recibió URL de checkout. Intentá nuevamente en unos minutos.');
+          return;
+        }
+        window.location.href = checkoutUrl;
+      } catch (error) {
+        const msg = String(error?.message || 'No se pudo abrir MercadoPago');
+        if (msg.toLowerCase().includes('sesión') || msg.toLowerCase().includes('sesion')) {
+          clearAuthState();
+          openAuthModal();
+          return;
+        }
+        alert(`Checkout no disponible: ${msg}`);
+      }
+    }
+
+    async function runPendingAction() {
+      if (pendingAction.type === 'checkout' && pendingAction.planCode) {
+        await triggerPlanCheckout(pendingAction.planCode);
+        return;
+      }
+      await triggerInstallerDownload(pendingAction.context || 'landing');
+    }
+
+    function requestGoogleAndContinue() {
       if (!HAS_BACKEND_GATE) {
-        fallbackDirectDownload(pendingDownloadContext);
+        fallbackDirectDownload(pendingAction.context || 'landing');
         return;
       }
 
@@ -1798,22 +1878,53 @@
       if (!link) return;
 
       event.preventDefault();
-      pendingDownloadContext = link.dataset.downloadContext || 'landing';
+      pendingAction = {
+        type: 'download',
+        context: link.dataset.downloadContext || 'landing',
+        planCode: ''
+      };
 
       if (!HAS_BACKEND_GATE) {
-        fallbackDirectDownload(pendingDownloadContext);
+        fallbackDirectDownload(pendingAction.context);
         return;
       }
 
       const state = getAuthState();
       if (state?.sessionToken && state?.user?.email) {
-        triggerInstallerDownload(pendingDownloadContext);
+        triggerInstallerDownload(pendingAction.context);
       } else {
         openAuthModal();
       }
     });
 
-    document.getElementById('auth-google-btn').addEventListener('click', requestGoogleAndDownload);
+    document.addEventListener('click', (event) => {
+      const btn = event.target.closest('.js-plan-checkout');
+      if (!btn) return;
+
+      event.preventDefault();
+      const planCode = (btn.dataset.planCode || '').trim().toLowerCase();
+      if (!planCode) return;
+
+      pendingAction = {
+        type: 'checkout',
+        context: `pricing_${planCode}`,
+        planCode
+      };
+
+      if (!HAS_BACKEND_GATE) {
+        alert('Checkout de MercadoPago no disponible en este entorno. Configurá TPV_API_BASE para habilitarlo.');
+        return;
+      }
+
+      const state = getAuthState();
+      if (state?.sessionToken && state?.user?.email) {
+        triggerPlanCheckout(planCode);
+      } else {
+        openAuthModal();
+      }
+    });
+
+    document.getElementById('auth-google-btn').addEventListener('click', requestGoogleAndContinue);
     document.getElementById('auth-cancel-btn').addEventListener('click', closeAuthModal);
     document.getElementById('auth-modal-backdrop').addEventListener('click', (event) => {
       if (event.target.id === 'auth-modal-backdrop') {

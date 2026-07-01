@@ -460,10 +460,15 @@ class Installer:
 def _launch_installed_app(install_dir: str):
     """Lanza la app instalada luego de una actualización automática."""
     try:
+        env = os.environ.copy()
+        for key in ('TCL_LIBRARY', 'TK_LIBRARY', 'TCL_DATA', '_MEIPASS2', 'PYTHONHOME', 'PYTHONPATH'):
+            env.pop(key, None)
+        env['PYINSTALLER_RESET_ENVIRONMENT'] = '1'
+
         vbs = os.path.join(install_dir, "Lanzar TPV Elite.vbs")
         if os.path.exists(vbs):
             wscript = os.path.join(os.environ.get("SystemRoot", "C:\\Windows"), "System32", "wscript.exe")
-            subprocess.Popen([wscript, vbs], cwd=install_dir)
+            subprocess.Popen([wscript, vbs], cwd=install_dir, env=env)
             return
 
         py = python_exe()
@@ -471,7 +476,7 @@ def _launch_installed_app(install_dir: str):
         if not os.path.exists(pythonw):
             pythonw = py
         main = os.path.join(install_dir, "main.py")
-        subprocess.Popen([pythonw, main], cwd=install_dir)
+        subprocess.Popen([pythonw, main], cwd=install_dir, env=env)
     except Exception:
         # Evitar bloquear la actualización por un fallo de relanzamiento.
         pass

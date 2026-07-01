@@ -112,6 +112,34 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logger.warning(f"No se pudo marcar cuentas legacy para cambio obligatorio de contraseña: {e}")
 
+        # Crear tabla de suscripción si no existe (billing/trial).
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='suscripciones'")
+        if not cursor.fetchone():
+            try:
+                cursor.execute('''
+                    CREATE TABLE suscripciones (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        plan_codigo TEXT,
+                        plan_nombre TEXT,
+                        plan_precio_mensual REAL,
+                        estado TEXT NOT NULL DEFAULT 'trial',
+                        trial_inicio TIMESTAMP,
+                        trial_fin TIMESTAMP,
+                        plan_seleccionado_en TIMESTAMP,
+                        ultima_notificacion_trial TIMESTAMP,
+                        creado_por_usuario_id INTEGER,
+                        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (creado_por_usuario_id) REFERENCES usuarios(id),
+                        CHECK (estado IN ('trial', 'activa', 'suspendida', 'pendiente_plan'))
+                    )
+                ''')
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_suscripciones_estado ON suscripciones(estado)")
+                conn.commit()
+                logger.info("Migración aplicada: tabla suscripciones creada")
+            except sqlite3.Error as e:
+                logger.warning(f"Migración omitida tabla suscripciones: {e}")
+
 
     def _get_connection(self) -> sqlite3.Connection:
         """Obtiene una conexión thread-safe"""
@@ -289,6 +317,26 @@ class DatabaseManager:
                     CHECK (activa IN (0, 1))
                 )
             ''')
+
+            # Tabla de suscripción (trial + plan elegido)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS suscripciones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    plan_codigo TEXT,
+                    plan_nombre TEXT,
+                    plan_precio_mensual REAL,
+                    estado TEXT NOT NULL DEFAULT 'trial',
+                    trial_inicio TIMESTAMP,
+                    trial_fin TIMESTAMP,
+                    plan_seleccionado_en TIMESTAMP,
+                    ultima_notificacion_trial TIMESTAMP,
+                    creado_por_usuario_id INTEGER,
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (creado_por_usuario_id) REFERENCES usuarios(id),
+                    CHECK (estado IN ('trial', 'activa', 'suspendida', 'pendiente_plan'))
+                )
+            ''')
             
             # Crear índices para optimizar consultas
             indices = [
@@ -305,7 +353,8 @@ class DatabaseManager:
                 "CREATE INDEX IF NOT EXISTS idx_movimientos_producto ON movimientos_inventario(producto_id)",
                 "CREATE INDEX IF NOT EXISTS idx_movimientos_fecha ON movimientos_inventario(fecha)",
                 "CREATE INDEX IF NOT EXISTS idx_sesiones_usuario ON sesiones(usuario_id)",
-                "CREATE INDEX IF NOT EXISTS idx_sesiones_activa ON sesiones(activa)"
+                "CREATE INDEX IF NOT EXISTS idx_sesiones_activa ON sesiones(activa)",
+                "CREATE INDEX IF NOT EXISTS idx_suscripciones_estado ON suscripciones(estado)"
             ]
             
             for index in indices:
