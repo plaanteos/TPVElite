@@ -46,7 +46,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 import logging
 
-APP_VERSION = "3.0.5"
+APP_VERSION = "3.0.6"
+APP_BUILD = "20260701.1"
 UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
 
 # Configurar e importar matplotlib
@@ -87,6 +88,41 @@ def _parse_version(v: str):
         return (0,)
 
 
+def _parse_bool(value) -> bool:
+    """Convierte banderas remotas en bool de forma tolerante."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "si", "on"}
+
+
+def _is_update_available(remote_version: str, remote_build: str, force_update: bool) -> bool:
+    """
+    Define si hay update.
+    Regla:
+    - version remota mayor -> update
+    - misma version pero build distinto -> update
+    - force_update true -> update
+    """
+    if force_update:
+        return True
+
+    local_v = _parse_version(APP_VERSION)
+    remote_v = _parse_version(remote_version)
+
+    if remote_v > local_v:
+        return True
+
+    if remote_v < local_v:
+        return False
+
+    # Mismo semver: comparar build/release para detectar modificaciones publicadas.
+    local_build = str(APP_BUILD or '').strip()
+    rb = str(remote_build or '').strip()
+    return bool(rb) and rb != local_build
+
+
 def _default_download_url() -> str:
     """Deriva URL del instalador usando la misma base de UPDATE_URL."""
     try:
@@ -107,10 +143,12 @@ def check_for_updates(root: tk.Tk):
                 data = json.loads(resp.read().decode())
 
             remote_version  = data.get('version', '0')
+            remote_build    = str(data.get('build', '')).strip()
             download_url    = data.get('download_url', '') or _default_download_url()
             changelog       = data.get('changelog', '')
+            force_update    = _parse_bool(data.get('force_update', False))
 
-            if _parse_version(remote_version) <= _parse_version(APP_VERSION):
+            if not _is_update_available(remote_version, remote_build, force_update):
                 return  # sin actualizaciones
 
             if not download_url:
@@ -118,7 +156,7 @@ def check_for_updates(root: tk.Tk):
                 return
 
             # Mostrar diálogo en el hilo principal
-            root.after(0, lambda: _prompt_update(root, remote_version, download_url, changelog))
+            root.after(0, lambda: _prompt_update(root, remote_version, download_url, changelog, remote_build))
 
         except Exception as e:
             logger.debug(f"Check de actualización omitido: {e}")
@@ -126,7 +164,7 @@ def check_for_updates(root: tk.Tk):
     threading.Thread(target=_worker, daemon=True).start()
 
 
-def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str):
+def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str, build: str = ""):
     """Muestra un diálogo in-app para confirmar la descarga de la actualización."""
 
     def _close_dialog(dialog: tk.Toplevel):
@@ -192,7 +230,7 @@ def _prompt_update(root: tk.Tk, version: str, url: str, changelog: str):
 
     tk.Label(
         container,
-        text=f"Nueva versión {version} disponible",
+        text=(f"Nueva versión {version} disponible" + (f" (build {build})" if build else "")),
         bg="#0f1419",
         fg="#f1f5ff",
         font=("Segoe UI", 16, "bold"),

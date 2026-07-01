@@ -1,5 +1,7 @@
 {
-  "version": "3.0.5",
+  "version": "3.0.6",
+  "build": "20260701.1",
+  "force_update": false,
   "download_url": "https://tpvelite.surge.sh/TPVElite_Setup.exe",
-  "changelog": "Release 3.0.5"
+  "changelog": "Release 3.0.6 - updater por version/build"
 }
