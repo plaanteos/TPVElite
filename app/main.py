@@ -1,7 +1,7 @@
 """
 Sistema TPV para Heladería - Aplicación Principal
 Autor: Jesus
-Versión: 3.0.7 - ELITE EDITION
+Versión: 3.0.8 - ELITE EDITION
 Descripción: Aplicación con interfaz ultra moderna, animaciones fluidas y diseño premium
 """
 
@@ -46,8 +46,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 import logging
 
-APP_VERSION = "3.0.7"
-APP_BUILD = "20260701.202956"
+APP_VERSION = "3.0.8"
+APP_BUILD = "20260701.205514"
 UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
 CHECKOUT_WEB_URL = "https://tpv-elite.vercel.app/"
 

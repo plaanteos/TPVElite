@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.8 - 2026-07-01 20:55:15
+- resumen: Release automática para forzar actualización
+- autor: plaanteos <plaanteos@gmail.com>
+- branch: main
+- commit_base: 2b79672
 ## 3.0.7 - 2026-07-01 20:29:56
 - resumen: Release 3.0.7
 - autor: plaanteos <plaanteos@gmail.com>
