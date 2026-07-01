@@ -1,11 +1,9 @@
 {
   "version": 2,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "^/$", "dest": "/landing/index.html" },
-    { "src": "^/(assets/.*)$", "dest": "/landing/$1" },
-    { "src": "^/(social-preview\.svg)$", "dest": "/landing/$1" },
-    { "src": "^/(version\.json)$", "dest": "/landing/$1" },
-    { "src": "^(.*)$", "dest": "/landing/index.html" }
+  "rewrites": [
+    { "source": "/assets/(.*)", "destination": "/landing/assets/$1" },
+    { "source": "/social-preview.svg", "destination": "/landing/social-preview.svg" },
+    { "source": "/version.json", "destination": "/landing/version.json" },
+    { "source": "/(.*)", "destination": "/landing/index.html" }
   ]
 }
