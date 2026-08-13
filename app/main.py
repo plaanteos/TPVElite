@@ -48,7 +48,7 @@ import logging
 
 APP_VERSION = "3.0.8"
 APP_BUILD = "20260701.205514"
-UPDATE_URL  = "https://tpvelite.surge.sh/version.json"
+UPDATE_URL  = "https://tpv-elite.vercel.app/version.json"
 CHECKOUT_WEB_URL = "https://tpv-elite.vercel.app/"
 
 # Configurar e importar matplotlib

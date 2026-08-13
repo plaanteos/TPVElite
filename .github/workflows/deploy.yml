@@ -1,4 +1,4 @@
-name: Deploy to Surge
+name: Deploy to Vercel
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'landing/**'
+      - 'vercel.json'
 
 jobs:
   deploy:
@@ -21,7 +22,5 @@ jobs:
       - name: Validate Version Sync
         run: node scripts/validate-version-sync.mjs
 
-      - name: Build installer and deploy to Surge
-        run: node scripts/deploy-update.mjs --domain tpvelite.surge.sh
-        env:
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+      - name: Deploy to Vercel
+        run: npx vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
