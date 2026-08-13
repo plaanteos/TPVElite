@@ -1626,7 +1626,7 @@
     const isVercelHost = /\.vercel\.app$/i.test(window.location.hostname);
     const API_BASE = configuredApiBase || (isVercelHost ? window.location.origin : '');
     const HAS_BACKEND_GATE = Boolean(API_BASE);
-    const DIRECT_INSTALLER_URL = 'https://tpvelite.surge.sh/TPVElite_Setup.exe';
+    const DIRECT_INSTALLER_URL = 'https://tpv-elite.vercel.app/TPVElite_Setup.exe';
     const STORAGE_KEY = 'tpvelite-auth-state';
     let googleTokenClient = null;
     let pendingAction = { type: 'download', context: 'landing', planCode: '' };

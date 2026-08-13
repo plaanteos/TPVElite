@@ -2,6 +2,6 @@
   "version": "3.0.8",
   "build": "20260701.205514",
   "force_update": false,
-  "download_url": "https://tpvelite.surge.sh/TPVElite_Setup.exe",
+  "download_url": "https://tpv-elite.vercel.app/TPVElite_Setup.exe",
   "changelog": "Release automática para forzar actualización"
 }

@@ -14,8 +14,9 @@ const __dirname = path.dirname(__filename);
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
-const INSTALLER_PATH = process.env.INSTALLER_PATH || '';
-const DOWNLOAD_TARGET_URL = process.env.DOWNLOAD_TARGET_URL || '';
+const DEFAULT_INSTALLER_PATH = path.resolve(__dirname, '..', 'landing', 'TPVElite_Setup.exe');
+const INSTALLER_PATH = process.env.INSTALLER_PATH || DEFAULT_INSTALLER_PATH;
+const DOWNLOAD_TARGET_URL = process.env.DOWNLOAD_TARGET_URL || 'https://tpv-elite.vercel.app/TPVElite_Setup.exe';
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || '';
 const MP_WEBHOOK_SECRET = process.env.MP_WEBHOOK_SECRET || '';
 const MP_CURRENCY_ID = process.env.MP_CURRENCY_ID || 'USD';
