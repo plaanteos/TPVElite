@@ -30,7 +30,9 @@ logs/
 informes/
 informe_stock/
 pedidos/
+# El instalador publicado debe poder incluirse en el deploy
 landing/*.exe
+!landing/TPVElite_Setup.exe
 
 # Config with secrets (keep config.json template but ignore local overrides)
 app/config.json
